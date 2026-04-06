@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workout Buddy</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --sky: #fff8f0;
+  --ground: #f0e6d3;
+  --accent: #ff6b6b;
+  --accent2: #ffd93d;
+  --accent3: #6bcb77;
+  --blue: #4d96ff;
+  --purple: #c77dff;
+  --dark: #2d2d2d;
+  --card: #ffffff;
+  --muted: #a0938a;
+  --fat-color: #ffb347;
+  --fit-color: #ff6b6b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--sky);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Polka dot background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, #ffd93d22 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.header h1 {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(28px, 5vw, 44px);
+  color: var(--accent);
+  text-shadow: 3px 3px 0 #ffb3b3, 5px 5px 0 rgba(255,107,107,0.15);
+  letter-spacing: 1px;
+}
+
+.header p {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Main layout */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .main { grid-template-columns: 1fr; }
+}
+
+/* Character panel */
+.character-panel {
+  background: var(--card);
+  border-radius: 24px;
+  border: 3px solid #ffe0cc;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.character-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 80px;
+  background: linear-gradient(180deg, #fff3e8 0%, transparent 100%);
+  border-radius: 22px 22px 0 0;
+}
+
+.char-name {
+  font-family: 'Fredoka One', cursive;
+  font-size: 22px;
+  color: var(--dark);
+  margin-bottom: 4px;
+  position: relative;
+}
+
+.weight-display {
+  font-family: 'Fredoka One', cursive;
+  font-size: 36px;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.weight-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+/* SVG character */
+#charSvg {
+  width: 180px;
+  height: 200px;
+  margin: 0 auto 12px;
+  display: block;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.1));
+}
+
+/* Progress bar */
+.progress-wrap {
+  background: #f5ede6;
+  border-radius: 99px;
+  height: 18px;
+  overflow: hidden;
+  margin-bottom: 6px;
+  border: 2px solid #ffe0cc;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent3), #4ecdc4);
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.progress-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+/* Mood speech bubble */
+.speech-bubble {
+  background: #fff8f0;
+  border: 2px solid #ffe0cc;
+  border-radius: 16px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dark);
+  position: relative;
+  margin-top: 4px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-bottom-color: #ffe0cc;
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: #fff8f0;
+}
+
+/* Right panel */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Exercise card */
+.exercise-card {
+  background: var(--card);
+  border-radius: 20px;
+  border: 3px solid #e8f4ff;
+  padding: 16px;
+}
+
+.exercise-card h3 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 18px;
+  color: var(--blue);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.current-exercise {
+  background: linear-gradient(135deg, #e8f4ff, #f0e8ff);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 2px solid #d0e8ff;
+}
+
+.ex-name {
+  font-family: 'Fredoka One', cursive;
+  font-size: 20px;
+  color: var(--dark);
+  margin-bottom: 4px;
+}
+
+.ex-instruction {
+  font-size: 13px;
+  color: #666;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.rep-counter {
+  font-family: 'Fredoka One', cursive;
+  font-size: 42px;
+  color: var(--accent);
+  text-align: center;
+  line-height: 1;
+  margin: 8px 0 2px;
+}
+
+.rep-label {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Camera */
+.cam-card {
+  background: var(--card);
+  border-radius: 20px;
+  border: 3px solid #e8f4ff;
+  padding: 14px;
+}
+
+.cam-card h3 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 16px;
+  color: var(--dark);
+  margin-bottom: 10px;
+}
+
+.cam-wrap {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #1a1a2e;
+  aspect-ratio: 4/3;
+}
+
+#camVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  opacity: 0.9;
+}
+
+#poseCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1);
+}
+
+.cam-status {
+  position: absolute;
+  bottom: 8px;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #00ffcc;
+  text-shadow: 0 0 8px rgba(0,255,204,0.5);
+  background: rgba(0,0,0,0.4);
+  padding: 4px;
+}
+
+/* Exercise queue */
+.queue-card {
+  background: var(--card);
+  border-radius: 20px;
+  border: 3px solid #fff0e0;
+  padding: 14px;
+}
+
+.queue-card h3 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 16px;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.queue-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.3s;
+}
+
+.queue-item.done {
+  background: #f0fff4;
+  color: var(--accent3);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.queue-item.active {
+  background: linear-gradient(135deg, #fff3cd, #ffe8cc);
+  color: var(--dark);
+  border: 2px solid var(--accent2);
+}
+
+.queue-item.pending {
+  background: #f9f9f9;
+  color: #999;
+}
+
+.queue-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* End of day modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal {
+  background: white;
+  border-radius: 28px;
+  padding: 28px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  border: 4px solid var(--accent2);
+  position: relative;
+  overflow: hidden;
+}
+
+.modal h2 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 28px;
+  color: var(--dark);
+  margin-bottom: 8px;
+}
+
+.modal p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.food-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.food-item {
+  font-size: 28px;
+  background: #fff8f0;
+  border-radius: 12px;
+  padding: 10px 4px;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+  border: 2px solid transparent;
+}
+
+.food-item:hover {
+  transform: scale(1.15);
+  background: #ffe8cc;
+  border-color: var(--accent2);
+}
+
+.food-item.eaten {
+  background: #ffe8cc;
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
+
+.modal-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 99px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 18px;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.modal-btn:hover { transform: scale(1.03); background: #e85555; }
+.modal-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* Celebration */
+@keyframes pop { 0%{transform:scale(0.5);opacity:0} 70%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes wiggle { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-5deg)} 75%{transform:rotate(5deg)} }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+.char-bounce { animation: bounce 0.5s ease; }
+.char-float { animation: float 3s ease-in-out infinite; }
+
+.confetti-piece {
+  position: fixed;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  animation: confettifall linear forwards;
+  z-index: 200;
+  pointer-events: none;
+}
+
+@keyframes confettifall {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* Streak badge */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+  color: white;
+  border-radius: 99px;
+  padding: 4px 12px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <h1>🏋️ Workout Buddy</h1>
+    <p>Help Blobby get fit — one rep at a time!</p>
+  </div>
+
+  <div class="main">
+
+    <!-- Character panel -->
+    <div class="character-panel">
+      <div class="char-name">Blobby</div>
+      <div class="weight-display" id="weightDisplay">280</div>
+      <div class="weight-label">lbs</div>
+
+      <svg id="charSvg" viewBox="0 0 180 200" xmlns="http://www.w3.org/2000/svg">
+        <!-- Shadow -->
+        <ellipse cx="90" cy="196" rx="50" ry="8" fill="rgba(0,0,0,0.08)"/>
+        <!-- Body (chubby blob) - shape controlled by JS -->
+        <g id="charBody">
+          <!-- Belly -->
+          <ellipse id="belly" cx="90" cy="130" rx="58" ry="62" fill="#ffb347"/>
+          <!-- Shirt -->
+          <ellipse id="shirt" cx="90" cy="118" rx="52" ry="50" fill="#ff6b6b"/>
+          <!-- Belly peek -->
+          <ellipse id="bellyPeek" cx="90" cy="150" rx="35" ry="20" fill="#ffc46b"/>
+          <!-- Head -->
+          <ellipse id="head" cx="90" cy="62" rx="42" ry="40" fill="#ffd4a3"/>
+          <!-- Cheeks -->
+          <ellipse id="cheekL" cx="62" cy="72" rx="14" ry="10" fill="#ffb3b3" opacity="0.6"/>
+          <ellipse id="cheekR" cx="118" cy="72" rx="14" ry="10" fill="#ffb3b3" opacity="0.6"/>
+          <!-- Eyes -->
+          <ellipse cx="76" cy="58" rx="7" ry="8" fill="white"/>
+          <ellipse cx="104" cy="58" rx="7" ry="8" fill="white"/>
+          <circle id="eyeL" cx="77" cy="59" r="4" fill="#2d2d2d"/>
+          <circle id="eyeR" cx="105" cy="59" r="4" fill="#2d2d2d"/>
+          <!-- Eye shine -->
+          <circle cx="79" cy="57" r="1.5" fill="white"/>
+          <circle cx="107" cy="57" r="1.5" fill="white"/>
+          <!-- Mouth -->
+          <path id="mouth" d="M78 74 Q90 82 102 74" stroke="#c0773e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <!-- Ears -->
+          <ellipse cx="48" cy="60" rx="8" ry="10" fill="#ffd4a3"/>
+          <ellipse cx="132" cy="60" rx="8" ry="10" fill="#ffd4a3"/>
+          <!-- Hair -->
+          <ellipse cx="90" cy="24" rx="38" ry="16" fill="#5c3317"/>
+          <ellipse cx="58" cy="34" rx="12" ry="14" fill="#5c3317"/>
+          <ellipse cx="122" cy="34" rx="12" ry="14" fill="#5c3317"/>
+          <!-- Arms -->
+          <ellipse id="armL" cx="32" cy="120" rx="16" ry="32" fill="#ff6b6b" transform="rotate(-10 32 120)"/>
+          <ellipse id="armR" cx="148" cy="120" rx="16" ry="32" fill="#ff6b6b" transform="rotate(10 148 120)"/>
+          <!-- Hands -->
+          <circle cx="26" cy="148" r="12" fill="#ffd4a3"/>
+          <circle cx="154" cy="148" r="12" fill="#ffd4a3"/>
+          <!-- Legs -->
+          <ellipse id="legL" cx="68" cy="182" rx="18" ry="22" fill="#4d96ff"/>
+          <ellipse id="legR" cx="112" cy="182" rx="18" ry="22" fill="#4d96ff"/>
+          <!-- Feet -->
+          <ellipse cx="65" cy="196" rx="20" ry="8" fill="#2d2d2d"/>
+          <ellipse cx="115" cy="196" rx="20" ry="8" fill="#2d2d2d"/>
+          <!-- Sweat drops (shown during exercise) -->
+          <g id="sweatDrops" opacity="0">
+            <ellipse cx="42" cy="54" rx="4" ry="6" fill="#87ceeb" opacity="0.8"/>
+            <ellipse cx="140" cy="50" rx="3" ry="5" fill="#87ceeb" opacity="0.8"/>
+            <ellipse cx="90" cy="28" rx="3" ry="5" fill="#87ceeb" opacity="0.8"/>
+          </g>
+        </g>
+      </svg>
+
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+      </div>
+      <div class="progress-label" id="progressLabel">Today's progress: 0%</div>
+
+      <div class="streak-badge" id="streakBadge">🔥 Day 1</div>
+
+      <div class="speech-bubble" id="speechBubble">
+        Hi! I'm Blobby... I could use some help! 😅
+      </div>
+    </div>
+
+    <!-- Right side -->
+    <div class="right-panel">
+
+      <!-- Current exercise -->
+      <div class="exercise-card">
+        <h3>💪 Current Exercise</h3>
+        <div class="current-exercise">
+          <div class="ex-name" id="exName">Loading...</div>
+          <div class="ex-instruction" id="exInstruction">Getting ready...</div>
+        </div>
+        <div class="rep-counter" id="repCounter">0</div>
+        <div class="rep-label" id="repLabel">/ 10 reps</div>
+      </div>
+
+      <!-- Camera -->
+      <div class="cam-card">
+        <h3>📷 Your Camera</h3>
+        <div class="cam-wrap">
+          <video id="camVideo" autoplay playsinline muted></video>
+          <canvas id="poseCanvas"></canvas>
+          <div class="cam-status" id="camStatus">STARTING CAMERA...</div>
+        </div>
+      </div>
+
+      <!-- Today's workout queue -->
+      <div class="queue-card">
+        <h3>Today's Workout</h3>
+        <div id="queueList"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- End of day modal -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">🎉 Workout Done!</h2>
+    <p id="modalDesc">Amazing work! Blobby lost some weight today! But now... it's dinner time. Click the foods to eat them!</p>
+    <div class="food-grid" id="foodGrid"></div>
+    <button class="modal-btn" id="modalBtn" onclick="finishDay()" disabled>Sleep & Start Tomorrow 😴</button>
+  </div>
+</div>
+
+<!-- MediaPipe Pose -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+const MAX_WEIGHT = 280;
+const MIN_WEIGHT = 160;
+const WEIGHT_PER_REP = 0.8;
+const WEIGHT_GAIN_PER_FOOD = 5;
+
+let weight = parseFloat(localStorage.getItem('buddyWeight') || MAX_WEIGHT);
+let day = parseInt(localStorage.getItem('buddyDay') || 1);
+let totalReps = 0;
+let currentExIdx = 0;
+let currentReps = 0;
+let workoutDone = false;
+let poseReady = false;
+
+// ── Exercises ─────────────────────────────────────────────────────────────────
+const EXERCISES = [
+  {
+    name: 'Jumping Jacks',
+    repsNeeded: 10,
+    icon: '⭐',
+    instruction: 'Arms up wide, then back down. Keep jumping!',
+    detect: detectJumpingJack,
+    state: { up: false }
+  },
+  {
+    name: 'Arm Raises',
+    repsNeeded: 10,
+    icon: '🙌',
+    instruction: 'Raise both arms above your head, then lower them.',
+    detect: detectArmRaise,
+    state: { up: false }
+  },
+  {
+    name: 'Squats',
+    repsNeeded: 8,
+    icon: '🦵',
+    instruction: 'Bend your knees like sitting in a chair, then stand up.',
+    detect: detectSquat,
+    state: { down: false }
+  },
+  {
+    name: 'Shoulder Rolls',
+    repsNeeded: 12,
+    icon: '🔄',
+    instruction: 'Raise one shoulder up high, then the other. Alternate!',
+    detect: detectShoulderRoll,
+    state: { lastSide: null, count: 0 }
+  }
+];
+
+// Reset exercise states
+function resetExercises() {
+  EXERCISES.forEach(ex => {
+    ex.state = { up: false, down: false, lastSide: null, count: 0 };
+  });
+  currentExIdx = 0;
+  currentReps = 0;
+  workoutDone = false;
+}
+
+// ── Pose Detection Logic ───────────────────────────────────────────────────────
+function getY(lm, idx) { return lm[idx] ? lm[idx].y : 0; }
+function getX(lm, idx) { return lm[idx] ? lm[idx].x : 0; }
+function vis(lm, idx) { return lm[idx] && lm[idx].visibility > 0.4; }
+
+function detectJumpingJack(lm, state) {
+  if (!vis(lm,15) || !vis(lm,16) || !vis(lm,11) || !vis(lm,12)) return false;
+  const leftWristY = getY(lm,15), rightWristY = getY(lm,16);
+  const leftShoulderY = getY(lm,11), rightShoulderY = getY(lm,12);
+  const armsUp = leftWristY < leftShoulderY - 0.08 && rightWristY < rightShoulderY - 0.08;
+  if (armsUp && !state.up) { state.up = true; return false; }
+  if (!armsUp && state.up) { state.up = false; return true; }
+  return false;
+}
+
+function detectArmRaise(lm, state) {
+  if (!vis(lm,15) || !vis(lm,16) || !vis(lm,11) || !vis(lm,12)) return false;
+  const avgWristY = (getY(lm,15) + getY(lm,16)) / 2;
+  const avgShoulderY = (getY(lm,11) + getY(lm,12)) / 2;
+  const up = avgWristY < avgShoulderY - 0.12;
+  if (up && !state.up) { state.up = true; return false; }
+  if (!up && state.up) { state.up = false; return true; }
+  return false;
+}
+
+function detectSquat(lm, state) {
+  if (!vis(lm,23) || !vis(lm,25) || !vis(lm,27)) return false;
+  const hipY = getY(lm,23), kneeY = getY(lm,25), ankleY = getY(lm,27);
+  const kneeAngle = kneeY - hipY;
+  const down = kneeAngle > 0.08;
+  if (down && !state.down) { state.down = true; return false; }
+  if (!down && state.down) { state.down = false; return true; }
+  return false;
+}
+
+function detectShoulderRoll(lm, state) {
+  if (!vis(lm,11) || !vis(lm,12)) return false;
+  const leftY = getY(lm,11), rightY = getY(lm,12);
+  const diff = leftY - rightY;
+  const side = diff > 0.04 ? 'left' : diff < -0.04 ? 'right' : null;
+  if (side && side !== state.lastSide) {
+    state.lastSide = side;
+    return true;
+  }
+  return false;
+}
+
+// ── MediaPipe Setup ───────────────────────────────────────────────────────────
+const video = document.getElementById('camVideo');
+const canvas = document.getElementById('poseCanvas');
+const pCtx = canvas.getContext('2d');
+
+const pose = new Pose({
+  locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`
+});
+
+pose.setOptions({
+  modelComplexity: 0,
+  smoothLandmarks: true,
+  minDetectionConfidence: 0.6,
+  minTrackingConfidence: 0.5
+});
+
+let lastRepTime = 0;
+
+pose.onResults(results => {
+  canvas.width = video.videoWidth || 320;
+  canvas.height = video.videoHeight || 240;
+  pCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (!poseReady) {
+    poseReady = true;
+    document.getElementById('camStatus').textContent = 'POSE DETECTED ✓';
+    document.getElementById('camStatus').style.color = '#00ffcc';
+  }
+
+  if (results.poseLandmarks) {
+    drawConnectors(pCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: 'rgba(0,255,204,0.4)', lineWidth: 2 });
+    drawLandmarks(pCtx, results.poseLandmarks, { color: '#ff6b6b', lineWidth: 1, radius: 3 });
+
+    if (!workoutDone) {
+      const ex = EXERCISES[currentExIdx];
+      const now = Date.now();
+      if (now - lastRepTime > 400) {
+        const repDone = ex.detect(results.poseLandmarks, ex.state);
+        if (repDone) {
+          lastRepTime = now;
+          currentReps++;
+          updateRepUI();
+          if (currentReps >= ex.repsNeeded) {
+            completeExercise();
+          }
+        }
+      }
+    }
+  } else {
+    if (!poseReady) {
+      document.getElementById('camStatus').textContent = 'STAND IN FRAME';
+    }
+  }
+});
+
+navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } })
+  .then(stream => {
+    video.srcObject = stream;
+    video.play();
+    const cam = new Camera(video, {
+      onFrame: async () => { await pose.send({ image: video }); },
+      width: 640, height: 480
+    });
+    cam.start();
+    document.getElementById('camStatus').textContent = 'LOADING POSE MODEL...';
+  })
+  .catch(() => {
+    document.getElementById('camStatus').textContent = 'NO CAMERA — DEMO MODE';
+    document.getElementById('camStatus').style.color = '#ffd93d';
+    startDemoMode();
+  });
+
+// Demo mode (no camera)
+function startDemoMode() {
+  setInterval(() => {
+    if (!workoutDone) {
+      const ex = EXERCISES[currentExIdx];
+      currentReps++;
+      updateRepUI();
+      if (currentReps >= ex.repsNeeded) completeExercise();
+    }
+  }, 1200);
+}
+
+// ── UI Updates ────────────────────────────────────────────────────────────────
+function updateRepUI() {
+  const ex = EXERCISES[currentExIdx];
+  document.getElementById('repCounter').textContent = currentReps;
+  document.getElementById('repLabel').textContent = `/ ${ex.repsNeeded} reps`;
+
+  // Weight loss per rep
+  weight = Math.max(MIN_WEIGHT, weight - WEIGHT_PER_REP);
+  saveState();
+  updateCharacter();
+
+  // Sweat!
+  document.getElementById('sweatDrops').style.opacity = '1';
+  setTimeout(() => { document.getElementById('sweatDrops').style.opacity = '0'; }, 600);
+
+  // Bounce
+  const svg = document.getElementById('charSvg');
+  svg.classList.remove('char-bounce');
+  void svg.offsetWidth;
+  svg.classList.add('char-bounce');
+  setTimeout(() => svg.classList.remove('char-bounce'), 500);
+
+  updateBubble('working');
+}
+
+function completeExercise() {
+  document.getElementById('queueList').children[currentExIdx].classList.replace('active', 'done');
+  currentExIdx++;
+  currentReps = 0;
+
+  if (currentExIdx >= EXERCISES.length) {
+    workoutDone = true;
+    setTimeout(showEndOfDay, 1200);
+    updateBubble('done');
+    launchConfetti();
+    document.getElementById('charSvg').classList.add('char-float');
+  } else {
+    EXERCISES[currentExIdx].state = { up: false, down: false, lastSide: null, count: 0 };
+    document.getElementById('queueList').children[currentExIdx].classList.replace('pending', 'active');
+    loadExercise(currentExIdx);
+    updateBubble('next');
+  }
+}
+
+function loadExercise(idx) {
+  const ex = EXERCISES[idx];
+  document.getElementById('exName').textContent = ex.icon + ' ' + ex.name;
+  document.getElementById('exInstruction').textContent = ex.instruction;
+  document.getElementById('repCounter').textContent = 0;
+  document.getElementById('repLabel').textContent = `/ ${ex.repsNeeded} reps`;
+}
+
+function buildQueue() {
+  const list = document.getElementById('queueList');
+  list.innerHTML = '';
+  EXERCISES.forEach((ex, i) => {
+    const el = document.createElement('div');
+    el.className = `queue-item ${i === 0 ? 'active' : 'pending'}`;
+    const dotColor = i === 0 ? '#ffd93d' : '#ddd';
+    el.innerHTML = `<div class="queue-dot" style="background:${dotColor}"></div>${ex.icon} ${ex.name} <span style="margin-left:auto;color:#aaa;font-size:12px">${ex.repsNeeded} reps</span>`;
+    list.appendChild(el);
+  });
+}
+
+// ── Character Morphing ────────────────────────────────────────────────────────
+function updateCharacter() {
+  const t = 1 - (weight - MIN_WEIGHT) / (MAX_WEIGHT - MIN_WEIGHT); // 0=fat, 1=fit
+  const progress = Math.round(t * 100);
+
+  document.getElementById('weightDisplay').textContent = Math.round(weight);
+  document.getElementById('progressBar').style.width = progress + '%';
+  document.getElementById('progressLabel').textContent = `Today's progress: ${progress}%`;
+
+  // Morph belly size: fat = big, fit = small
+  const bellyRx = 58 - t * 28; // 58 → 30
+  const bellyRy = 62 - t * 30; // 62 → 32
+  const shirtRx = 52 - t * 24;
+  const shirtRy = 50 - t * 22;
+  const peekRx  = 35 - t * 20;
+  const peekRy  = 20 - t * 12;
+  const cheekRx = 14 - t * 6;
+
+  document.getElementById('belly').setAttribute('rx', bellyRx);
+  document.getElementById('belly').setAttribute('ry', bellyRy);
+  document.getElementById('shirt').setAttribute('rx', shirtRx);
+  document.getElementById('shirt').setAttribute('ry', shirtRy);
+  document.getElementById('bellyPeek').setAttribute('rx', peekRx);
+  document.getElementById('bellyPeek').setAttribute('ry', peekRy);
+  document.getElementById('cheekL').setAttribute('rx', cheekRx);
+  document.getElementById('cheekR').setAttribute('rx', cheekRx);
+
+  // Color shifts from tired-orange to healthy-pink
+  const r1 = Math.round(255 - t * 30);
+  const g1 = Math.round(179 - t * 40);
+  document.getElementById('belly').setAttribute('fill', `rgb(${r1},${g1},71)`);
+
+  // Mouth: sad → happy
+  const moodY = 74 + t * 4;
+  const curveY = 82 - t * 10; // straight → big smile
+  document.getElementById('mouth').setAttribute('d', `M78 ${moodY} Q90 ${curveY} 102 ${moodY}`);
+
+  updateBubble(t < 0.1 ? 'lazy' : t > 0.8 ? 'fit' : 'normal');
+}
+
+const bubbles = {
+  lazy: ["Ugh... do I have to? 😩", "Maybe tomorrow... 😴", "Is the couch an exercise? 🛋️"],
+  working: ["Huff... puff... 😤", "Feeling the burn!! 🔥", "Don't stop me now! 💪", "Ow ow ow ow! 😅"],
+  next: ["Nice! What's next?! 😤", "Keep going!! Let's GO! 🚀", "I'm actually sweating! 😅"],
+  done: ["I DID IT!! 🎉🎉🎉", "Look at me go!! 💪✨", "Best. Day. Ever!! 🏆"],
+  fit: ["I feel AMAZING! ✨", "Look at these gains!! 💪", "Who's that fit person?! 😍"],
+  normal: ["Let's do this! 💪", "One more rep! 😤", "Almost there!! 🔥"]
+};
+
+let lastBubbleType = '';
+function updateBubble(type) {
+  if (type === lastBubbleType && type !== 'working') return;
+  lastBubbleType = type;
+  const opts = bubbles[type] || bubbles.normal;
+  document.getElementById('speechBubble').textContent = opts[Math.floor(Math.random() * opts.length)];
+}
+
+// ── End of Day ────────────────────────────────────────────────────────────────
+const FOODS = ['🍕','🍔','🌮','🍩','🍦','🎂','🍟','🍫'];
+
+function showEndOfDay() {
+  const overlay = document.getElementById('modalOverlay');
+  const grid = document.getElementById('foodGrid');
+  overlay.classList.remove('hidden');
+
+  // Build food grid
+  grid.innerHTML = '';
+  FOODS.forEach(food => {
+    const el = document.createElement('div');
+    el.className = 'food-item';
+    el.textContent = food;
+    el.onclick = () => eatFood(el, food);
+    grid.appendChild(el);
+  });
+
+  document.getElementById('modalTitle').textContent = '🎉 Workout Complete!';
+  document.getElementById('modalDesc').textContent =
+    `Blobby dropped to ${Math.round(weight)} lbs today! Great work! But now it's dinner time... click ALL the foods to eat them! 🍽️`;
+  document.getElementById('modalBtn').disabled = true;
+
+  // Check after all foods eaten
+  window._foodsEaten = 0;
+  window._foodsNeeded = FOODS.length;
+}
+
+function eatFood(el, food) {
+  if (el.classList.contains('eaten')) return;
+  el.classList.add('eaten');
+  window._foodsEaten++;
+
+  // Gain weight
+  weight = Math.min(MAX_WEIGHT, weight + WEIGHT_GAIN_PER_FOOD);
+  saveState();
+  updateCharacter();
+
+  // Jiggle character
+  const svg = document.getElementById('charSvg');
+  svg.style.animation = 'wiggle 0.3s ease';
+  setTimeout(() => { svg.style.animation = 'float 3s ease-in-out infinite'; }, 300);
+
+  if (window._foodsEaten >= window._foodsNeeded) {
+    document.getElementById('modalBtn').disabled = false;
+    document.getElementById('modalDesc').textContent =
+      `Blobby ate everything and is back up to ${Math.round(weight)} lbs! Come back tomorrow to work it off again! 😅`;
+  }
+}
+
+function finishDay() {
+  day++;
+  localStorage.setItem('buddyDay', day);
+  localStorage.setItem('buddyWeight', MAX_WEIGHT); // reset to max each new day
+  document.getElementById('streakBadge').textContent = `🔥 Day ${day}`;
+  document.getElementById('modalOverlay').classList.add('hidden');
+  resetExercises();
+  weight = MAX_WEIGHT;
+  buildQueue();
+  loadExercise(0);
+  updateCharacter();
+  updateBubble('lazy');
+  document.getElementById('charSvg').classList.remove('char-float');
+}
+
+function saveState() {
+  localStorage.setItem('buddyWeight', weight);
+}
+
+// ── Confetti ──────────────────────────────────────────────────────────────────
+function launchConfetti() {
+  const colors = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#c77dff','#ff9f43'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.cssText = `
+        left: ${Math.random() * 100}vw;
+        top: -10px;
+        background: ${colors[Math.floor(Math.random() * colors.length)]};
+        animation-duration: ${1.5 + Math.random() * 2}s;
+        animation-delay: ${Math.random() * 0.5}s;
+        transform: rotate(${Math.random() * 360}deg);
+        width: ${6 + Math.random() * 8}px;
+        height: ${6 + Math.random() * 8}px;
+        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+      `;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }, i * 40);
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.getElementById('streakBadge').textContent = `🔥 Day ${day}`;
+buildQueue();
+loadExercise(0);
+updateCharacter();
+updateBubble('lazy');
+</script>
+</body>
+</html>
