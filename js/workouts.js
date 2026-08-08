@@ -5,6 +5,57 @@
    Weight change (loss from exercise, gain from food) both use
    the same real-world constant: 3500 kcal ≈ 1 lb of bodyweight.
    ============================================================ */
+
+/**
+ * @typedef {Object} ExerciseDef
+ * @property {string} key
+ * @property {string} name
+ * @property {number} met - Metabolic Equivalent of Task coefficient.
+ * @property {number} secPerRep
+ * @property {string[]} tags
+ * @property {string} tip
+ * @property {function(number): void} demo - Renders demo phase 0/1 into #demoSvg.
+ */
+
+/**
+ * @typedef {Object} QueuedExercise
+ * @property {string} key
+ * @property {string} name
+ * @property {number} met
+ * @property {number} secPerRep
+ * @property {string[]} tags
+ * @property {string} tip
+ * @property {function(number): void} demo
+ * @property {number} reps - Reps assigned for this workout instance.
+ * @property {Object} state - Fresh per-exercise detector state.
+ */
+
+/**
+ * @typedef {Object} Goal
+ * @property {string} key
+ * @property {string} label
+ * @property {string} desc
+ * @property {string[]} pool - Exercise keys this goal draws from.
+ * @property {number} count - Number of exercises in a built workout.
+ * @property {string} iconKey
+ */
+
+/**
+ * @typedef {Object} Intensity
+ * @property {string} key
+ * @property {string} label
+ * @property {number} repsMult
+ * @property {number} restSec
+ * @property {string} desc
+ */
+
+/**
+ * @typedef {Object} Workout
+ * @property {Goal} goal
+ * @property {Intensity} intensity
+ * @property {QueuedExercise[]} exercises
+ */
+
 (function (global) {
   const EXERCISES = {
     jumping_jacks: {
@@ -84,6 +135,15 @@
 
   const BASE_REPS = 10;
 
+  /**
+   * Builds a deterministic circuit of exercises for a given goal/intensity/day.
+   * Same (goalKey, intensityKey, daySeed) always yields the same exercise
+   * list and rep counts (seeded LCG), so a day's workout is reproducible.
+   * @param {string} goalKey
+   * @param {string} intensityKey
+   * @param {number} daySeed
+   * @returns {Workout}
+   */
   function buildWorkout(goalKey, intensityKey, daySeed) {
     const goal = GOALS[goalKey] || GOALS.weight_loss;
     const intensity = INTENSITIES[intensityKey] || INTENSITIES.moderate;
@@ -108,6 +168,12 @@
     return { goal, intensity, exercises: chosen };
   }
 
+  /**
+   * @param {{met: number, secPerRep: number}} exercise
+   * @param {number} reps
+   * @param {number} bodyWeightLb
+   * @returns {number} Estimated kcal burned.
+   */
   function estimateCalories(exercise, reps, bodyWeightLb) {
     const kg = bodyWeightLb * 0.453592;
     const minutes = (exercise.secPerRep * reps) / 60;
@@ -115,7 +181,9 @@
     return kcalPerMin * minutes;
   }
 
+  /** @param {number} kcal @returns {number} */
   function kcalToLbs(kcal) { return kcal / 3500; }
+  /** @param {number} lbs @returns {number} */
   function lbsToKcal(lbs) { return lbs * 3500; }
 
   // ---- Compact stick-figure demo renderer (used in the exercise preview card) ----

@@ -138,7 +138,7 @@
   function refreshCharacterUI(moodOverride) {
     const t = fitnessT();
     character.update({ t });
-    $('weightNow').textContent = Math.round(store.state.weight);
+    $('weightNow').textContent = String(Math.round(store.state.weight));
     $('weightGoalSub').textContent = store.state.goalWeight + ' lbs';
     $('goalChipVal').textContent = store.state.goalWeight + ' lbs';
     $('progFill').style.width = Math.round(t * 100) + '%';
@@ -595,7 +595,7 @@
       if (isNaN(v) || v < 90) v = 90;
       if (v > store.state.weight - 5) v = Math.max(90, store.state.weight - 5);
       store.state.goalWeight = v;
-      e.target.value = v;
+      e.target.value = String(v);
       store.save();
       refreshCharacterUI();
       toast('Goal weight updated');
@@ -605,7 +605,7 @@
       if (isNaN(v) || v < 90) v = 90;
       store.state.weight = v;
       if (v > store.state.startWeight) store.state.startWeight = v;
-      e.target.value = v;
+      e.target.value = String(v);
       store.save();
       refreshCharacterUI();
       toast('Current weight updated');

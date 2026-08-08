@@ -1,7 +1,33 @@
 /* ============================================================
    BEAT THE BULK — Persistent store + progress tracker
    ============================================================ */
+
+/**
+ * @typedef {Object} DayRecord
+ * @property {number} day
+ * @property {number} weight
+ * @property {number} repsTotal
+ */
+
+/**
+ * @typedef {Object} StoreState
+ * @property {string} name
+ * @property {number} startWeight
+ * @property {number} weight
+ * @property {number} goalWeight
+ * @property {number} day
+ * @property {number} streak
+ * @property {number} bestStreak
+ * @property {string|null} lastPlayDate
+ * @property {number} totalReps
+ * @property {number} totalWorkouts
+ * @property {number} totalCaloriesBurned
+ * @property {string} goal
+ * @property {string} intensity
+ */
+
 (function (global) {
+  /** @type {StoreState} */
   const DEFAULTS = {
     name: 'Buddy',
     startWeight: 210,
@@ -19,9 +45,16 @@
   };
 
   function Store() {
+    /** @type {StoreState} */
     this.state = Object.assign({}, DEFAULTS, this._loadJSON('btb_state', {}));
+    /** @type {DayRecord[]} */
     this.history = this._loadJSON('btb_history', []);
   }
+  /**
+   * @param {string} key
+   * @param {*} fallback
+   * @returns {*}
+   */
   Store.prototype._loadJSON = function (key, fallback) {
     try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
     catch (e) { return fallback; }
@@ -35,12 +68,17 @@
     this.history = [];
     this.save();
   };
+  /** @param {DayRecord} record */
   Store.prototype.recordDay = function (record) {
     this.history.push(record);
     if (this.history.length > 120) this.history.shift();
     this.save();
   };
 
+  /**
+   * @param {InstanceType<typeof Store>} store
+   * @returns {{lost: number, toGo: number, totalWorkouts: number, totalReps: number, streak: number, bestStreak: number, caloriesBurned: number}}
+   */
   function computeStats(store) {
     const s = store.state;
     return {

@@ -292,8 +292,8 @@
 
     // ---- Aura ----
     document.getElementById('auraGlow').setAttribute('opacity', (0.08 + t * 0.22).toFixed(2));
-    document.getElementById('auraGlow').setAttribute('rx', 70 + t * 14);
-    document.getElementById('auraGlow').setAttribute('ry', 88 + t * 10);
+    document.getElementById('auraGlow').setAttribute('rx', String(70 + t * 14));
+    document.getElementById('auraGlow').setAttribute('ry', String(88 + t * 10));
 
     this._applyMood();
   };

@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "target": "ES2019",
+    "lib": ["ES2019", "DOM"],
+    "strict": false,
+    "skipLibCheck": true
+  },
+  "include": ["js/**/*.js", "types/**/*.d.ts"],
+  "exclude": ["legacy/**", "node_modules", "test/**", "test-helpers/**", ".claude/**"]
+}

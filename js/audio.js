@@ -91,6 +91,7 @@
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.exponentialRampToValueAtTime(peak, t0 + (opts.attack || 0.008));
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + (opts.dur || 0.2));
+    /** @type {AudioNode} */
     let node = osc;
     if (opts.filterFreq) {
       const f = ctx.createBiquadFilter();

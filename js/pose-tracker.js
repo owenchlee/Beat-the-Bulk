@@ -18,6 +18,21 @@
     lAnkle: 27, rAnkle: 28
   };
 
+  /**
+   * @typedef {Object} Landmark
+   * @property {number} x
+   * @property {number} y
+   * @property {number} [z]
+   * @property {number} [visibility]
+   */
+
+  /**
+   * Joint angle at vertex `b`, between rays b->a and b->c, via law of cosines.
+   * @param {Landmark} a
+   * @param {Landmark} b
+   * @param {Landmark} c
+   * @returns {number|null} Degrees, or null if a/c coincide with the vertex.
+   */
   function angleAt(a, b, c) {
     const v1x = a.x - b.x, v1y = a.y - b.y, v2x = c.x - b.x, v2y = c.y - b.y;
     const m1 = Math.hypot(v1x, v1y), m2 = Math.hypot(v2x, v2y);
@@ -26,14 +41,24 @@
     cos = Math.max(-1, Math.min(1, cos));
     return Math.acos(cos) * 180 / Math.PI;
   }
+  /** @param {Landmark} a @param {Landmark} b @returns {Landmark} */
   function midPt(a, b) { return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
+  /** @param {Landmark} a @param {Landmark} b @returns {number} */
   function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+  /** @param {number} d @returns {number} Delta normalized into [-180, 180]. */
   function normAngleDelta(d) { while (d > 180) d -= 360; while (d < -180) d += 360; return d; }
   function vis(lm, i, thr) { return !!(lm[i] && lm[i].visibility !== undefined && lm[i].visibility > (thr || 0.45)); }
   function visAll(lm, idxs, thr) { return idxs.every(i => vis(lm, i, thr)); }
 
-  // Cycle state machine: fires `true` exactly once when an active->rest
-  // transition completes (i.e. one full rep), with N-frame debounce both ways.
+  /**
+   * Rest/active hysteresis state machine: fires `true` exactly once when an
+   * active->rest transition completes (i.e. one full rep), with an N-frame
+   * debounce in both directions so a single noisy frame can't flip it.
+   * @param {{phase?: string, aHold?: number, rHold?: number}} state - Mutated in place.
+   * @param {boolean} activeNow
+   * @param {number} [holdFrames=3]
+   * @returns {boolean} True on the frame a rep completes.
+   */
   function cycle(state, activeNow, holdFrames) {
     holdFrames = holdFrames || 3;
     if (activeNow) { state.aHold = (state.aHold || 0) + 1; state.rHold = 0; }
@@ -262,4 +287,6 @@
   global.BTB = global.BTB || {};
   global.BTB.PoseTracker = Tracker;
   global.BTB.PoseDetectorKeys = Object.keys(Detectors);
+  global.BTB.PoseMath = { angleAt, midPt, dist, normAngleDelta, cycle, freshState };
+  global.BTB.Detectors = Detectors;
 })(window);
