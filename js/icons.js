@@ -26,7 +26,8 @@
     sparkle: '<path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z" fill="currentColor" stroke="none"/>',
     scale: '<path d="M12 3v3M6 6h12M6 6l-3 7a3 3 0 006 0L6 6M18 6l-3 7a3 3 0 006 0l-3-7M9 21h6"/>',
     calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
-    footprint: '<path d="M9 3c2 0 3 2 3 5s-1 5-3 5-3-1-3-3 1-7 3-7z"/><path d="M15 11c2 0 3 3 3 6s-1 4-3 4-3-1-3-3 1-7 3-7z"/>'
+    footprint: '<path d="M9 3c2 0 3 2 3 5s-1 5-3 5-3-1-3-3 1-7 3-7z"/><path d="M15 11c2 0 3 3 3 6s-1 4-3 4-3-1-3-3 1-7 3-7z"/>',
+    share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.6l7.6-4.2M8.2 13.4l7.6 4.2"/>'
   };
 
   function iconMarkup(name, size) {

@@ -439,6 +439,7 @@
       <h2>Workout Complete!</h2>
       <div class="sub">${store.state.name} is down to <strong>${Math.round(store.state.weight)} lbs</strong> — ${lost} lbs lost on this journey so far.<br>Now it's dinner. Your choices here matter just as much as the workout.</div>
       ${avgFormScore !== null ? `<div class="result-pills"><div class="pill ${avgFormScore >= 80 ? 'pill-good' : avgFormScore >= 55 ? 'pill-info' : 'pill-bad'}">Avg form score: ${avgFormScore}</div></div>` : ''}
+      <button class="btn btn-ghost btn-block btn-sm" id="shareBtn" style="margin-bottom:var(--sp-4)">${BTB.icon('share', 16)}<span>Share Result</span></button>
       <div class="food-game">
         <div class="food-game-title">Dinner Time</div>
         <div class="food-game-sub">Pick 2–5 items. Tap to add to the plate.</div>
@@ -494,7 +495,27 @@
       belt.appendChild(b);
     });
     $('sleepBtn').addEventListener('click', finishDay);
+    $('shareBtn').addEventListener('click', shareWorkoutResult);
     $('modalOverlay').classList.remove('hidden');
+  }
+
+  function shareWorkoutResult() {
+    const canvas = document.createElement('canvas');
+    BTB.renderShareCard(canvas, { session, store, t: fitnessT() });
+    canvas.toBlob(async blob => {
+      if (!blob) return;
+      const file = new File([blob], 'beat-the-bulk-result.png', { type: 'image/png' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file], title: 'Beat the Bulk', text: 'My workout result' }); return; }
+        catch (e) { /* user cancelled or share failed — fall through to download */ }
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'beat-the-bulk-result.png';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }, 'image/png');
   }
 
   function finishDay() {
