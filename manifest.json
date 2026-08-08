@@ -1,0 +1,13 @@
+{
+  "name": "Beat the Bulk",
+  "short_name": "Beat the Bulk",
+  "description": "Turn your webcam into a rep counter and coach your character to get fit.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d1016",
+  "theme_color": "#f97316",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
