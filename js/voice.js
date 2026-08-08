@@ -1,0 +1,52 @@
+/* ============================================================
+   BEAT THE BULK — Voice coaching
+   Spoken rep counts, countdowns, and encouragement via the Web
+   Speech API's SpeechSynthesis. No audio files, no backend —
+   same "runs entirely in the browser" spirit as js/audio.js.
+   ============================================================ */
+(function (global) {
+  function VoiceEngine() {
+    this.supported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+    this.enabled = localStorage.getItem('btb_voiceEnabled') !== '0'; // on by default
+    this.rate = parseFloat(localStorage.getItem('btb_voiceRate') || '1');
+  }
+
+  /** @param {boolean} on */
+  VoiceEngine.prototype.setEnabled = function (on) {
+    this.enabled = !!on;
+    localStorage.setItem('btb_voiceEnabled', this.enabled ? '1' : '0');
+    if (!this.enabled && this.supported) window.speechSynthesis.cancel();
+  };
+
+  /** @param {number} rate - 0.5 (slow) to 1.5 (fast). */
+  VoiceEngine.prototype.setRate = function (rate) {
+    this.rate = rate;
+    localStorage.setItem('btb_voiceRate', String(rate));
+  };
+
+  /**
+   * Speaks a line. High-priority lines (countdowns) interrupt whatever is
+   * currently queued; normal-priority lines are dropped if speech is
+   * already in progress, so rep callouts never pile up into a backlog.
+   * @param {string} text
+   * @param {{priority?: 'normal'|'high'}} [opts]
+   */
+  VoiceEngine.prototype.speak = function (text, opts) {
+    if (!this.supported || !this.enabled || !text) return;
+    const priority = (opts && opts.priority) || 'normal';
+    const synth = window.speechSynthesis;
+    if (priority === 'high') {
+      synth.cancel();
+    } else if (synth.speaking) {
+      return;
+    }
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = this.rate;
+    utter.pitch = 1;
+    utter.volume = 1;
+    synth.speak(utter);
+  };
+
+  global.BTB = global.BTB || {};
+  global.BTB.Voice = new VoiceEngine();
+})(window);

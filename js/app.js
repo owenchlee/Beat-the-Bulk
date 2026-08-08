@@ -5,6 +5,7 @@
   const $ = id => document.getElementById(id);
   const store = new BTB.Store();
   const audio = BTB.Audio;
+  const voice = BTB.Voice;
 
   let character, tracker;
   let selectedGoal = store.state.goal || 'weight_loss';
@@ -38,6 +39,7 @@
     label('historyTitle', 'clock', 'Workout History');
     label('milestoneTitle', 'trophy', 'Milestones');
     label('audioSettingsTitle', 'volume', 'Audio');
+    label('voiceSettingsTitle', 'sparkle', 'Voice Coaching');
     label('goalSettingsTitle', 'target', 'Goal');
     label('dataSettingsTitle', 'scale', 'Your Data');
     label('resetBtn', 'x', 'Reset All Progress');
@@ -84,11 +86,13 @@
     eatBad: ["Worth it... probably.", "We'll work it off next time.", "No regrets. Mostly."],
     milestone: ["Whoa — new milestone unlocked!", "We just hit a big goal!", "Look how far we've come!"]
   };
-  function setBubble(type) {
+  function setBubble(type, speakToo) {
     if (type === lastBubbleType && type !== 'working') return;
     lastBubbleType = type;
     const opts = MSGS[type] || MSGS.start;
-    $('bubble').textContent = opts[Math.floor(Math.random() * opts.length)];
+    const line = opts[Math.floor(Math.random() * opts.length)];
+    $('bubble').textContent = line;
+    if (speakToo) voice.speak(line);
   }
 
   // ---------------------------------------------------------------
@@ -131,7 +135,7 @@
       character.showSparkle(true);
       setTimeout(() => { if (!session || session.phase !== 'done') character.showSparkle(false); }, 1600);
       toast('Milestone reached! Keep going.');
-      setBubble('milestone');
+      setBubble('milestone', true);
     }
   }
 
@@ -247,16 +251,17 @@
     lbl.textContent = startLabel;
     let n = seconds;
     num.textContent = n;
-    if (n <= 3) audio.play('countdownTick', n);
+    if (n <= 3) { audio.play('countdownTick', n); voice.speak(String(n), { priority: 'high' }); }
     const iv = setInterval(() => {
       n--;
       if (n > 0) {
         num.textContent = n;
-        if (n <= 3) audio.play('countdownTick', n);
+        if (n <= 3) { audio.play('countdownTick', n); voice.speak(String(n), { priority: 'high' }); }
       } else {
         clearInterval(iv);
         num.textContent = doneLabel;
         audio.play('countdownGo');
+        voice.speak(doneLabel === 'GO!' ? "Go!" : doneLabel, { priority: 'high' });
         setTimeout(() => { overlay.classList.add('hidden'); cb(); }, 500);
       }
     }, 1000);
@@ -315,7 +320,11 @@
     setTimeout(() => character.showSweat(false), 550);
     setBubble('working');
 
-    if (session.reps >= ex.reps) completeExercise();
+    if (session.reps >= ex.reps) {
+      completeExercise();
+    } else if (session.reps % 5 === 0) {
+      voice.speak(String(session.reps));
+    }
   }
 
   function completeExercise() {
@@ -323,7 +332,7 @@
     stopDemoFallback();
     clearInterval(demoAnimTimer);
     audio.play('setComplete');
-    setBubble('setDone');
+    setBubble('setDone', true);
     buildQueueUI();
     session.exercises[session.idx].completed = true;
 
@@ -357,7 +366,7 @@
     character.showSparkle(true);
     character.wiggle();
     launchConfetti();
-    setBubble('workoutDone');
+    setBubble('workoutDone', true);
     setTimeout(showEndOfDayModal, 1500);
   }
 
@@ -575,6 +584,14 @@
     $('muteToggle').checked = audio.muted;
     $('goalWeightInput').value = store.state.goalWeight;
     $('currentWeightInput').value = store.state.weight;
+    $('voiceToggle').checked = voice.enabled;
+    $('voiceRateSlider').value = voice.rate;
+
+    $('voiceToggle').addEventListener('change', e => {
+      voice.setEnabled(e.target.checked);
+      if (e.target.checked) voice.speak('Voice coaching on.', { priority: 'high' });
+    });
+    $('voiceRateSlider').addEventListener('input', e => { voice.setRate(parseFloat(e.target.value)); });
 
     $('musicVolSlider').addEventListener('input', e => { audio.unlock(); audio.setMusicVolume(parseFloat(e.target.value)); });
     $('sfxVolSlider').addEventListener('input', e => { audio.unlock(); audio.setSfxVolume(parseFloat(e.target.value)); audio.play('click'); });

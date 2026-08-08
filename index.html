@@ -176,6 +176,18 @@
         </div>
 
         <div class="card" style="margin-bottom:var(--sp-4)">
+          <div class="card-title" id="voiceSettingsTitle"></div>
+          <div class="settings-row">
+            <div><div class="settings-label">Voice coaching</div><div class="settings-sub">Spoken rep counts, countdowns, encouragement</div></div>
+            <label class="switch"><input type="checkbox" id="voiceToggle"><span class="switch-track"></span></label>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Speaking rate</div><div class="settings-sub">How fast the coach talks</div></div>
+            <input type="range" min="0.6" max="1.5" step="0.1" class="slider" id="voiceRateSlider">
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:var(--sp-4)">
           <div class="card-title" id="goalSettingsTitle"></div>
           <div class="field">
             <label for="goalWeightInput">Goal weight (lbs)</label>
@@ -212,6 +224,7 @@
 <script src="js/icons.js"></script>
 <script src="js/character.js"></script>
 <script src="js/audio.js"></script>
+<script src="js/voice.js"></script>
 <script src="js/pose-tracker.js"></script>
 <script src="js/workouts.js"></script>
 <script src="js/foods.js"></script>
