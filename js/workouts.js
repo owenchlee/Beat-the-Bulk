@@ -105,6 +105,24 @@
       tags: ['Legs', 'Balance'],
       tip: 'Step forward and bend both knees to about 90°, then push back to standing. Alternate legs.',
       demo: demoLunge
+    },
+    bicep_curls: {
+      key: 'bicep_curls', name: 'Bicep Curls', met: 3.5, secPerRep: 1.8,
+      tags: ['Arms', 'Strength'],
+      tip: 'Elbows at your sides, curl both hands up toward your shoulders, then lower back down.',
+      demo: demoBicepCurl
+    },
+    lateral_raises: {
+      key: 'lateral_raises', name: 'Lateral Raises', met: 3, secPerRep: 1.6,
+      tags: ['Arms', 'Shoulders'],
+      tip: 'Raise both arms out to the sides until they reach shoulder height, then lower back down.',
+      demo: demoLateralRaise
+    },
+    toe_touches: {
+      key: 'toe_touches', name: 'Toe Touches', met: 3.5, secPerRep: 1.8,
+      tags: ['Flexibility', 'Core'],
+      tip: 'Keep your legs fairly straight and bend forward at the hips, reaching toward your toes.',
+      demo: demoToeTouch
     }
   };
 
@@ -115,11 +133,11 @@
     },
     endurance: {
       key: 'endurance', label: 'Endurance', desc: 'Steady mixed circuit to build stamina.',
-      pool: ['jumping_jacks', 'high_knees', 'squats', 'overhead_press', 'arm_circles'], count: 5, iconKey: 'heart'
+      pool: ['jumping_jacks', 'high_knees', 'squats', 'overhead_press', 'arm_circles', 'toe_touches'], count: 5, iconKey: 'heart'
     },
     toning: {
       key: 'toning', label: 'Toning', desc: 'Strength-focused moves for muscle definition.',
-      pool: ['squats', 'push_ups', 'lunges', 'overhead_press'], count: 4, iconKey: 'bolt'
+      pool: ['squats', 'push_ups', 'lunges', 'overhead_press', 'bicep_curls', 'lateral_raises'], count: 4, iconKey: 'bolt'
     },
     quick_cardio: {
       key: 'quick_cardio', label: 'Quick Cardio', desc: 'Short, high-energy burst when you\'re short on time.',
@@ -283,6 +301,23 @@
       <line x1="20" y1="60" x2="20" y2="86" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>
       <line x1="45" y1="52" x2="68" y2="66" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>
       <line x1="68" y1="66" x2="60" y2="88" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>`);
+  }
+  function demoBicepCurl(ph) { setDemo(ph === 0 ? stick(18, 30, 200, 340, 110, 70) : stick(18, 30, 120, 60, 110, 70)); }
+  function demoLateralRaise(ph) { setDemo(ph === 0 ? stick(18, 30, 200, 340, 110, 70) : stick(18, 30, 175, 5, 110, 70)); }
+  function demoToeTouch(ph) {
+    setDemo(ph === 0 ? `
+      <circle cx="45" cy="16" r="10" fill="#ffd4a3" stroke="#c98452" stroke-width="1.5"/>
+      <line x1="45" y1="26" x2="45" y2="58" stroke="#f97316" stroke-width="4" stroke-linecap="round"/>
+      <line x1="45" y1="33" x2="30" y2="50" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
+      <line x1="45" y1="33" x2="60" y2="50" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
+      <line x1="45" y1="58" x2="34" y2="86" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="45" y1="58" x2="56" y2="86" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>` : `
+      <circle cx="45" cy="72" r="9" fill="#ffd4a3" stroke="#c98452" stroke-width="1.5"/>
+      <line x1="45" y1="58" x2="45" y2="64" stroke="#f97316" stroke-width="4" stroke-linecap="round"/>
+      <line x1="45" y1="60" x2="36" y2="84" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
+      <line x1="45" y1="60" x2="54" y2="84" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
+      <line x1="45" y1="58" x2="34" y2="86" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="45" y1="58" x2="56" y2="86" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>`);
   }
 
   global.BTB = global.BTB || {};

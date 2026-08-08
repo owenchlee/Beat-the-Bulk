@@ -179,6 +179,38 @@
       if (kneeL === null || kneeR === null) return false;
       const active = Math.min(kneeL, kneeR) < 120 && Math.abs(kneeL - kneeR) > 15;
       return cycle(state, active, 3);
+    },
+
+    bicep_curls(lm, state, scale) {
+      if (!visAll(lm, [11, 12, 13, 14, 15, 16])) return false;
+      const elbowL = angleAt(lm[11], lm[13], lm[15]);
+      const elbowR = angleAt(lm[12], lm[14], lm[16]);
+      if (elbowL === null || elbowR === null) return false;
+      const avg = (elbowL + elbowR) / 2;
+      const active = avg < 50; // curled up toward the shoulder
+      return cycle(state, active, 3);
+    },
+
+    lateral_raises(lm, state, scale) {
+      if (!visAll(lm, [11, 12, 15, 16])) return false;
+      const raised = side => {
+        const sh = lm[side === 'L' ? 11 : 12], wr = lm[side === 'L' ? 15 : 16];
+        const atShoulderHeight = Math.abs(sh.y - wr.y) / scale < 0.14;
+        const armOut = Math.abs(wr.x - sh.x) / scale > 0.34;
+        return atShoulderHeight && armOut;
+      };
+      const active = raised('L') && raised('R');
+      return cycle(state, active, 3);
+    },
+
+    toe_touches(lm, state, scale) {
+      if (!visAll(lm, [11, 12, 23, 24, 25, 26])) return false;
+      const hipAngleL = angleAt(lm[11], lm[23], lm[25]);
+      const hipAngleR = angleAt(lm[12], lm[24], lm[26]);
+      if (hipAngleL === null || hipAngleR === null) return false;
+      const avg = (hipAngleL + hipAngleR) / 2;
+      const active = avg < 100; // torso folded forward at the hips
+      return cycle(state, active, 3);
     }
   };
 

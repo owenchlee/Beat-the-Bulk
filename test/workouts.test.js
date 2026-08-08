@@ -4,7 +4,20 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 require('../js/workouts.js');
-const { buildWorkout, estimateCalories, kcalToLbs, lbsToKcal, Goals } = global.BTB;
+require('../js/pose-tracker.js');
+const { buildWorkout, estimateCalories, kcalToLbs, lbsToKcal, Goals, Exercises, Detectors } = global.BTB;
+
+test('every exercise has a matching pose detector and vice versa', () => {
+  assert.deepEqual(Object.keys(Exercises).sort(), Object.keys(Detectors).sort());
+});
+
+test('every goal pool only references known exercise keys', () => {
+  for (const goalKey of Object.keys(Goals)) {
+    for (const exerciseKey of Goals[goalKey].pool) {
+      assert.ok(Exercises[exerciseKey], `${goalKey} pool references unknown exercise "${exerciseKey}"`);
+    }
+  }
+});
 
 test('buildWorkout is deterministic for a fixed seed', () => {
   const a = buildWorkout('weight_loss', 'moderate', 42);
