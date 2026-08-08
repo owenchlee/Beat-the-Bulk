@@ -1,0 +1,62 @@
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes charBounce {
+  0%, 100% { transform: translateY(0) scale(1,1); }
+  40% { transform: translateY(-9px) scale(0.97,1.05); }
+  75% { transform: translateY(2px) scale(1.03,0.97); }
+}
+@keyframes charFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes charWiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+@keyframes repFlash {
+  0% { transform: scale(1); }
+  50% { color: var(--color-accent); transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+@keyframes confettiFall {
+  0% { opacity: 1; transform: translateY(-10px) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.92) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.6) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.15) rotate(20deg); }
+}
+@keyframes ringPulse {
+  0% { box-shadow: 0 0 0 0 rgba(249,115,22,0.45); }
+  100% { box-shadow: 0 0 0 14px rgba(249,115,22,0); }
+}
+
+.char-bounce { animation: charBounce 0.5s var(--ease-spring); }
+.char-float { animation: charFloat 3s ease-in-out infinite; }
+.char-wiggle { animation: charWiggle 0.35s ease; }
+.rep-flash { animation: repFlash 0.28s ease; }
+.confetti-p { position: fixed; pointer-events: none; z-index: var(--z-confetti); border-radius: 2px; animation: confettiFall linear forwards; }
+.toast { animation: toastIn 0.25s var(--ease-out); }
+.modal { animation: modalIn 0.28s var(--ease-spring); }
+.pulse-dot { animation: pulseDot 1.4s ease-in-out infinite; }
+.ring-pulse { animation: ringPulse 1.6s ease-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .char-bounce, .char-float, .char-wiggle, .rep-flash, .confetti-p, .toast, .modal, .pulse-dot, .ring-pulse {
+    animation: none !important;
+  }
+}
