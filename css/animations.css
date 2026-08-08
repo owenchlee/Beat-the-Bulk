@@ -17,7 +17,7 @@
 }
 @keyframes repFlash {
   0% { transform: scale(1); }
-  50% { color: var(--color-accent); transform: scale(1.25); }
+  50% { color: var(--flash-color, var(--color-accent)); transform: scale(1.25); }
   100% { transform: scale(1); }
 }
 @keyframes confettiFall {

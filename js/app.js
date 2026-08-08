@@ -296,7 +296,7 @@
     if (session && session.demoTimer) { clearInterval(session.demoTimer); session.demoTimer = null; }
   }
 
-  function handleRep() {
+  function handleRep(formScore) {
     if (!session || session.phase !== 'active') return;
     const ex = session.exercises[session.idx];
     session.reps++;
@@ -308,7 +308,14 @@
     session.caloriesBurned = (session.caloriesBurned || 0) + kcal;
     store.state.weight = Math.max(store.state.goalWeight, store.state.weight - lbs);
 
+    // Demo-mode reps (no camera) have no measured form — treat as a clean rep.
+    const score = typeof formScore === 'number' ? formScore : 100;
+    session.formScoreSum = (session.formScoreSum || 0) + score;
+    session.formScoreCount = (session.formScoreCount || 0) + 1;
+
     $('repNum').textContent = session.reps;
+    const flashColor = score >= 80 ? 'var(--color-accent)' : score >= 55 ? 'var(--color-warning)' : 'var(--color-destructive)';
+    $('repNum').style.setProperty('--flash-color', flashColor);
     $('repNum').classList.remove('rep-flash'); void $('repNum').offsetWidth; $('repNum').classList.add('rep-flash');
     $('repBar').style.width = Math.min(100, (session.reps / ex.reps) * 100) + '%';
 
@@ -411,10 +418,12 @@
   function showEndOfDayModal() {
     let eaten = [], totalCal = 0, plateArr = [];
     const lost = Math.max(0, store.state.startWeight - store.state.weight).toFixed(1);
+    const avgFormScore = session.formScoreCount ? Math.round(session.formScoreSum / session.formScoreCount) : null;
     const box = $('modalBox');
     box.innerHTML = `
       <h2>Workout Complete!</h2>
       <div class="sub">${store.state.name} is down to <strong>${Math.round(store.state.weight)} lbs</strong> — ${lost} lbs lost on this journey so far.<br>Now it's dinner. Your choices here matter just as much as the workout.</div>
+      ${avgFormScore !== null ? `<div class="result-pills"><div class="pill ${avgFormScore >= 80 ? 'pill-good' : avgFormScore >= 55 ? 'pill-info' : 'pill-bad'}">Avg form score: ${avgFormScore}</div></div>` : ''}
       <div class="food-game">
         <div class="food-game-title">Dinner Time</div>
         <div class="food-game-sub">Pick 2–5 items. Tap to add to the plate.</div>
@@ -490,7 +499,8 @@
       caloriesBurned: Math.round(session.caloriesBurned || 0),
       caloriesEaten: Math.round(session.caloriesEaten || 0),
       repsTotal: session.repsTotal || 0,
-      exercisesCompleted: session.exercises.length
+      exercisesCompleted: session.exercises.length,
+      avgFormScore: session.formScoreCount ? Math.round(session.formScoreSum / session.formScoreCount) : null
     });
     store.save();
 

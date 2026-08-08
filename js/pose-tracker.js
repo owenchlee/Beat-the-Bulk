@@ -71,28 +71,78 @@
 
   function freshState() { return {}; }
 
-  // ---- Detectors: each returns true exactly on rep completion ----
+  /**
+   * Normalizes `value` into [0, 1] on the line from `atThreshold` (the value
+   * that just barely crosses into "active", scoring 0) to `atTarget` (the
+   * value for excellent form, scoring 1). Works whether the metric grows or
+   * shrinks as form improves, since both bounds move together.
+   * @param {number} value
+   * @param {number} atThreshold
+   * @param {number} atTarget
+   * @returns {number}
+   */
+  function normT(value, atThreshold, atTarget) {
+    const t = (value - atThreshold) / (atTarget - atThreshold);
+    return Math.max(0, Math.min(1, t));
+  }
+  /**
+   * Maps a normalized depth `t` (from normT) to a 0-100 form score. Crossing
+   * the threshold at all still "counts" the rep (floor of 40); reaching the
+   * target depth scores 100.
+   * @param {number} t
+   * @returns {number}
+   */
+  function scoreFromT(t) { return Math.round(40 + t * 60); }
+
+  // ---- Detectors: each returns false, or {done: true, formScore} on rep completion ----
+  /**
+   * Wraps cycle() for the common case: a single scalar metric where
+   * `active` was already decided by the caller, tracking the deepest
+   * (best-form) value reached during the active phase in state.formT, and
+   * emitting {done, formScore} on rep completion instead of a bare boolean.
+   * @param {Object} state
+   * @param {boolean} active
+   * @param {number} metric
+   * @param {number} atThreshold
+   * @param {number} atTarget
+   * @returns {false|{done: true, formScore: number}}
+   */
+  function cycleScored(state, active, metric, atThreshold, atTarget) {
+    if (active) state.formT = Math.max(state.formT || 0, normT(metric, atThreshold, atTarget));
+    const done = cycle(state, active, 3);
+    if (!done) return false;
+    const formScore = scoreFromT(state.formT || 0);
+    state.formT = 0;
+    return { done: true, formScore };
+  }
+
   const Detectors = {
     jumping_jacks(lm, state, scale) {
       if (!visAll(lm, [11, 12, 13, 14, 15, 16, 23, 24, 27, 28])) return false;
-      const armUp = side => {
+      const armMargin = side => {
         const sh = lm[side === 'L' ? 11 : 12], wr = lm[side === 'L' ? 15 : 16], el = lm[side === 'L' ? 13 : 14];
         const elbowStraightish = (angleAt(sh, el, wr) || 0) > 120;
-        return (sh.y - wr.y) / scale > 0.28 && elbowStraightish;
+        return elbowStraightish ? (sh.y - wr.y) / scale : -1;
       };
+      const mL = armMargin('L'), mR = armMargin('R');
       const legGap = dist(lm[27], lm[28]) / scale;
-      const active = armUp('L') && armUp('R') && legGap > 0.42;
-      return cycle(state, active, 3);
+      const active = mL > 0.28 && mR > 0.28 && legGap > 0.42;
+      const metric = Math.min(normT(mL, 0.28, 0.45), normT(mR, 0.28, 0.45), normT(legGap, 0.42, 0.60));
+      // metric is already 0-1 here, so threshold/target of the outer cycleScored call are a passthrough
+      return cycleScored(state, active, metric, 0, 1);
     },
 
     overhead_press(lm, state, scale) {
       if (!visAll(lm, [11, 12, 13, 14, 15, 16])) return false;
-      const raised = side => {
+      const raisedMargin = side => {
         const sh = lm[side === 'L' ? 11 : 12], wr = lm[side === 'L' ? 15 : 16], el = lm[side === 'L' ? 13 : 14];
-        return (sh.y - wr.y) / scale > 0.30 && (angleAt(sh, el, wr) || 0) > 140;
+        const straight = (angleAt(sh, el, wr) || 0) > 140;
+        return straight ? (sh.y - wr.y) / scale : -1;
       };
-      const active = raised('L') && raised('R');
-      return cycle(state, active, 3);
+      const mL = raisedMargin('L'), mR = raisedMargin('R');
+      const active = mL > 0.30 && mR > 0.30;
+      const metric = Math.min(normT(mL, 0.30, 0.50), normT(mR, 0.30, 0.50));
+      return cycleScored(state, active, metric, 0, 1);
     },
 
     squats(lm, state, scale) {
@@ -102,7 +152,7 @@
       if (kneeL === null || kneeR === null) return false;
       const avg = (kneeL + kneeR) / 2;
       const active = avg < 130; // bent knees
-      return cycle(state, active, 3);
+      return cycleScored(state, active, avg, 130, 90);
     },
 
     side_reaches(lm, state, scale) {
@@ -113,12 +163,18 @@
       const side = lean > 0 ? 'r' : 'l';
       if (active) {
         state.aHold = (state.aHold || 0) + 1; state.rHold = 0;
+        state.formT = Math.max(state.formT || 0, normT(Math.abs(lean), 0.20, 0.38));
         if (state.aHold >= 3 && state.phase !== 'active') { state.phase = 'active'; state.curSide = side; }
       } else {
         state.rHold = (state.rHold || 0) + 1; state.aHold = 0;
         if (state.rHold >= 3 && state.phase === 'active') {
           state.phase = 'rest';
-          if (state.curSide && state.curSide !== state.lastSide) { state.lastSide = state.curSide; return true; }
+          if (state.curSide && state.curSide !== state.lastSide) {
+            state.lastSide = state.curSide;
+            const formScore = scoreFromT(state.formT || 0);
+            state.formT = 0;
+            return { done: true, formScore };
+          }
         }
       }
       return false;
@@ -136,12 +192,18 @@
       const side = liftL > liftR ? 'l' : 'r';
       if (active) {
         state.aHold = (state.aHold || 0) + 1; state.rHold = 0;
+        state.formT = Math.max(state.formT || 0, normT(Math.max(liftL, liftR), 48, 75));
         if (state.aHold >= 2 && state.phase !== 'active') { state.phase = 'active'; state.curSide = side; }
       } else {
         state.rHold = (state.rHold || 0) + 1; state.aHold = 0;
         if (state.rHold >= 2 && state.phase === 'active') {
           state.phase = 'rest';
-          if (state.curSide && state.curSide !== state.lastSide) { state.lastSide = state.curSide; return true; }
+          if (state.curSide && state.curSide !== state.lastSide) {
+            state.lastSide = state.curSide;
+            const formScore = scoreFromT(state.formT || 0);
+            state.formT = 0;
+            return { done: true, formScore };
+          }
         }
       }
       return false;
@@ -158,7 +220,13 @@
       state.lastAngle = ang;
       if (Math.abs(delta) > 45) return false; // reject spikes
       state.rotAcc = (state.rotAcc || 0) + delta;
-      if (Math.abs(state.rotAcc) >= 330) { state.rotAcc = 0; return true; }
+      if (Math.abs(state.rotAcc) >= 330) {
+        // Overshoot past 330 toward a fuller rotation reads as a rounder,
+        // more complete circle rather than a rep that just barely counted.
+        const formScore = scoreFromT(normT(Math.abs(state.rotAcc), 330, 370));
+        state.rotAcc = 0;
+        return { done: true, formScore };
+      }
       return false;
     },
 
@@ -169,7 +237,7 @@
       if (elbowL === null || elbowR === null) return false;
       const avg = (elbowL + elbowR) / 2;
       const active = avg < 110;
-      return cycle(state, active, 3);
+      return cycleScored(state, active, avg, 110, 75);
     },
 
     lunges(lm, state, scale) {
@@ -177,8 +245,9 @@
       const kneeL = angleAt(lm[23], lm[25], lm[27]);
       const kneeR = angleAt(lm[24], lm[26], lm[28]);
       if (kneeL === null || kneeR === null) return false;
-      const active = Math.min(kneeL, kneeR) < 120 && Math.abs(kneeL - kneeR) > 15;
-      return cycle(state, active, 3);
+      const minKnee = Math.min(kneeL, kneeR);
+      const active = minKnee < 120 && Math.abs(kneeL - kneeR) > 15;
+      return cycleScored(state, active, minKnee, 120, 90);
     },
 
     bicep_curls(lm, state, scale) {
@@ -188,19 +257,21 @@
       if (elbowL === null || elbowR === null) return false;
       const avg = (elbowL + elbowR) / 2;
       const active = avg < 50; // curled up toward the shoulder
-      return cycle(state, active, 3);
+      return cycleScored(state, active, avg, 50, 25);
     },
 
     lateral_raises(lm, state, scale) {
       if (!visAll(lm, [11, 12, 15, 16])) return false;
-      const raised = side => {
+      const sideMetric = side => {
         const sh = lm[side === 'L' ? 11 : 12], wr = lm[side === 'L' ? 15 : 16];
         const atShoulderHeight = Math.abs(sh.y - wr.y) / scale < 0.14;
-        const armOut = Math.abs(wr.x - sh.x) / scale > 0.34;
-        return atShoulderHeight && armOut;
+        const armOut = Math.abs(wr.x - sh.x) / scale;
+        return atShoulderHeight && armOut > 0.34 ? armOut : -1;
       };
-      const active = raised('L') && raised('R');
-      return cycle(state, active, 3);
+      const mL = sideMetric('L'), mR = sideMetric('R');
+      const active = mL > 0 && mR > 0;
+      const metric = Math.min(normT(mL, 0.34, 0.50), normT(mR, 0.34, 0.50));
+      return cycleScored(state, active, metric, 0, 1);
     },
 
     toe_touches(lm, state, scale) {
@@ -210,7 +281,7 @@
       if (hipAngleL === null || hipAngleR === null) return false;
       const avg = (hipAngleL + hipAngleR) / 2;
       const active = avg < 100; // torso folded forward at the hips
-      return cycle(state, active, 3);
+      return cycleScored(state, active, avg, 100, 70);
     }
   };
 
@@ -292,10 +363,10 @@
     const detector = Detectors[this.currentDetectorKey];
     if (!detector) return;
     const now = Date.now();
-    const repDone = detector(lm, this.exState, scale);
-    if (repDone && (now - this.lastRepMs) > this.minRepGapMs) {
+    const result = detector(lm, this.exState, scale);
+    if (result && result.done && (now - this.lastRepMs) > this.minRepGapMs) {
       this.lastRepMs = now;
-      this.opts.onRep && this.opts.onRep();
+      this.opts.onRep && this.opts.onRep(result.formScore);
     }
   };
 

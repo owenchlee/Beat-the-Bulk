@@ -7,6 +7,7 @@
  * @property {number} day
  * @property {number} weight
  * @property {number} repsTotal
+ * @property {number|null} [avgFormScore]
  */
 
 /**
