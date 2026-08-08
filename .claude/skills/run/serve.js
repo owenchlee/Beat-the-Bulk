@@ -22,7 +22,7 @@ const mime = {
 
 const server = http.createServer((req, res) => {
   let reqPath = decodeURIComponent(req.url.split('?')[0]);
-  if (reqPath === '/') reqPath = '/workout_buddy.html';
+  if (reqPath === '/') reqPath = '/index.html';
   const filePath = path.join(root, reqPath);
 
   if (!filePath.startsWith(root)) {
@@ -49,8 +49,9 @@ function listen(port) {
   currentPort = port;
   server.listen(port, () => {
     console.log(`Serving ${root} at http://localhost:${port}/`);
-    console.log(`  Blobby Fit:     http://localhost:${port}/blobby_fit.html`);
-    console.log(`  Workout Buddy:  http://localhost:${port}/workout_buddy.html`);
+    console.log(`  Beat the Bulk (current):  http://localhost:${port}/index.html`);
+    console.log(`  Legacy Blobby Fit:        http://localhost:${port}/legacy/blobby_fit.html`);
+    console.log(`  Legacy Workout Buddy:     http://localhost:${port}/legacy/workout_buddy.html`);
   });
 }
 

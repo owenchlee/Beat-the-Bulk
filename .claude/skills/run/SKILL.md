@@ -5,16 +5,22 @@ description: Launch Beat the Bulk (Blobby Fit / Workout Buddy) locally over HTTP
 
 # Running Beat the Bulk
 
-This repo has no build step and no dependencies — it's two standalone,
-self-contained HTML files at the repo root:
+The live app is `index.html` at the repo root, built from a modular
+`css/` + `js/` architecture (no bundler — plain `<script>`/`<link>` tags,
+loaded directly by the browser). Two legacy self-contained single-file
+prototypes are kept for reference under `legacy/`:
 
-- `blobby_fit.html` — "Blobby Fit" app
-- `workout_buddy.html` — "Workout Buddy" app
+- `legacy/blobby_fit.html` — earlier "Blobby Fit" full prototype
+- `legacy/workout_buddy.html` — earlier, simpler "Workout Buddy" prototype
 
-Both load MediaPipe (`camera_utils`, `drawing_utils`, `pose`) from a CDN and use
-the webcam for pose tracking. **Do not open these files directly as
+All three load MediaPipe (`camera_utils`, `drawing_utils`, `pose`) from a CDN
+and use the webcam for pose tracking. **Do not open these files directly as
 `file://` URLs** — camera access is unreliable outside a proper HTTP context.
 Always serve them over `http://localhost`.
+
+Note: the repo also has a Node-only `package.json` (tests + `tsc --checkJs`)
+for development — that's dev/CI tooling only and has no effect on running the
+app itself, which still requires zero installs.
 
 ## Start the server
 
@@ -26,19 +32,22 @@ node .claude/skills/run/serve.js
 ```
 
 Run this in the background (e.g. `run_in_background: true` in Bash, or `Start-Process`
-in PowerShell) since it blocks. It serves the repo root and prints the URLs
-for both apps. Default port is 8000; if that's taken it tries 8001, 8002, ...
-up to 8009 — read the server's stdout to see which port it actually bound.
+in PowerShell) since it blocks. It serves the repo root and prints URLs for
+the current app and the two legacy prototypes. Default port is 8000; if
+that's taken it tries 8001, 8002, ... up to 8009 — read the server's stdout
+to see which port it actually bound.
 
 ## Open the app
 
-If the user didn't specify which app, ask (or default to `workout_buddy.html`,
-the more feature-complete one). Open in the default browser:
+Defaults to `index.html`, the current app. Open in the default browser:
 
-- Windows (PowerShell): `Start-Process "http://localhost:8000/workout_buddy.html"`
+- Windows (PowerShell): `Start-Process "http://localhost:8000/index.html"`
 - Or use the claude-in-chrome tools to navigate a tab there directly, which
   also lets you screenshot/verify the result and grant camera permission
   prompts if needed.
+
+Only open a `legacy/*.html` file if the user specifically asks for the old
+prototype.
 
 ## Stopping
 
