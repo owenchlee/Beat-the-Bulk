@@ -59,6 +59,23 @@ test('computeStats derives lost/toGo/caloriesBurned correctly', () => {
   assert.equal(stats.caloriesBurned, 1235);
 });
 
+test('exercisesTried and unlockedAchievements are independent per Store instance (no shared-reference aliasing)', () => {
+  const a = new Store();
+  a.markExerciseTried('squats');
+  a.unlockAchievement('first_workout');
+
+  const b = new Store();
+  assert.deepEqual(b.state.exercisesTried, {});
+  assert.deepEqual(b.state.unlockedAchievements, []);
+});
+
+test('unlockAchievement is idempotent', () => {
+  const store = new Store();
+  store.unlockAchievement('first_workout');
+  store.unlockAchievement('first_workout');
+  assert.deepEqual(store.state.unlockedAchievements, ['first_workout']);
+});
+
 test('computeStats clamps lost/toGo at 0 rather than going negative', () => {
   const store = new Store();
   store.state.startWeight = 210;

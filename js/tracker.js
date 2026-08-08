@@ -25,10 +25,14 @@
  * @property {number} totalCaloriesBurned
  * @property {string} goal
  * @property {string} intensity
+ * @property {string[]} [unlockedAchievements] - Always present once _ensureCollections() has run.
+ * @property {Object.<string, boolean>} [exercisesTried] - Always present once _ensureCollections() has run.
  */
 
 (function (global) {
-  /** @type {StoreState} */
+  // Primitive-only subset of StoreState — unlockedAchievements/exercisesTried
+  // are seeded separately by _ensureCollections(), never placed here (see
+  // note below), so this intentionally isn't typed as the full StoreState.
   const DEFAULTS = {
     name: 'Buddy',
     startWeight: 210,
@@ -48,6 +52,7 @@
   function Store() {
     /** @type {StoreState} */
     this.state = Object.assign({}, DEFAULTS, this._loadJSON('btb_state', {}));
+    this._ensureCollections();
     /** @type {DayRecord[]} */
     this.history = this._loadJSON('btb_history', []);
   }
@@ -60,12 +65,27 @@
     try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
     catch (e) { return fallback; }
   };
+  // DEFAULTS stays primitive-only so Object.assign never aliases a shared
+  // array/object across Store instances; collection fields are seeded here.
+  Store.prototype._ensureCollections = function () {
+    if (!this.state.unlockedAchievements) this.state.unlockedAchievements = [];
+    if (!this.state.exercisesTried) this.state.exercisesTried = {};
+  };
+  /** @param {string} id */
+  Store.prototype.unlockAchievement = function (id) {
+    if (!this.state.unlockedAchievements.includes(id)) this.state.unlockedAchievements.push(id);
+  };
+  /** @param {string} key */
+  Store.prototype.markExerciseTried = function (key) {
+    this.state.exercisesTried[key] = true;
+  };
   Store.prototype.save = function () {
     localStorage.setItem('btb_state', JSON.stringify(this.state));
     localStorage.setItem('btb_history', JSON.stringify(this.history));
   };
   Store.prototype.reset = function () {
     this.state = Object.assign({}, DEFAULTS);
+    this._ensureCollections();
     this.history = [];
     this.save();
   };

@@ -38,6 +38,7 @@
     label('weeklyChartTitle', 'calendar', "This Week's Reps");
     label('historyTitle', 'clock', 'Workout History');
     label('milestoneTitle', 'trophy', 'Milestones');
+    label('achievementsTitle', 'sparkle', 'Achievements');
     label('audioSettingsTitle', 'volume', 'Audio');
     label('voiceSettingsTitle', 'sparkle', 'Voice Coaching');
     label('goalSettingsTitle', 'target', 'Goal');
@@ -137,6 +138,16 @@
       toast('Milestone reached! Keep going.');
       setBubble('milestone', true);
     }
+  }
+
+  function checkAchievements() {
+    const newly = BTB.evaluateAchievements(store, session);
+    if (!newly.length) return;
+    audio.play('milestone');
+    character.showSparkle(true);
+    setTimeout(() => { if (!session || session.phase !== 'done') character.showSparkle(false); }, 1600);
+    newly.forEach(a => toast(`Achievement unlocked: ${a.name}`));
+    setBubble('milestone', true);
   }
 
   function refreshCharacterUI(moodOverride) {
@@ -321,6 +332,7 @@
 
     refreshCharacterUI();
     checkMilestoneCrossing();
+    checkAchievements();
     audio.play('rep');
     character.bounce();
     character.showSweat(true);
@@ -342,6 +354,8 @@
     setBubble('setDone', true);
     buildQueueUI();
     session.exercises[session.idx].completed = true;
+    store.markExerciseTried(session.exercises[session.idx].key);
+    checkAchievements();
 
     if (session.idx + 1 >= session.exercises.length) {
       finishWorkoutSession();
@@ -367,6 +381,7 @@
     audio.play('workoutComplete');
     store.state.totalWorkouts++;
     store.state.totalCaloriesBurned += (session.caloriesBurned || 0);
+    checkAchievements();
     store.save();
     character.update({ pose: 'celebrate', mood: 'happy' });
     character.setFloat(true);
@@ -574,6 +589,25 @@
         <div class="history-weight" style="color:${reached ? 'var(--color-accent)' : 'var(--color-fg-faint)'}">${reached ? 'Done' : 'Locked'}</div>
       `;
       timeline.appendChild(row);
+    });
+    renderAchievements();
+  }
+
+  function renderAchievements() {
+    const list = $('achievementsList');
+    list.innerHTML = '';
+    const unlocked = store.state.unlockedAchievements || [];
+    BTB.Achievements.forEach(a => {
+      const done = unlocked.includes(a.id);
+      const row = document.createElement('div');
+      row.className = 'history-row';
+      row.style.marginBottom = 'var(--sp-2)';
+      row.innerHTML = `
+        <div class="q-check" style="border-color:${done ? 'var(--color-accent)' : 'var(--color-border-strong)'};color:${done ? 'var(--color-accent)' : 'var(--color-fg-faint)'}">${done ? BTB.icon('check', 12) : BTB.icon(a.iconKey, 12)}</div>
+        <div class="history-detail" style="font-weight:700;color:${done ? 'var(--color-fg)' : 'var(--color-fg-faint)'}">${a.name}<div style="font-weight:500;font-size:11px;margin-top:2px">${a.desc}</div></div>
+        <div class="history-weight" style="color:${done ? 'var(--color-accent)' : 'var(--color-fg-faint)'}">${done ? 'Done' : 'Locked'}</div>
+      `;
+      list.appendChild(row);
     });
   }
 
