@@ -83,7 +83,13 @@
   const SHOE_STRIPE_HEAVY = '#9ca3af';
   const SHOE_STRIPE_FIT = '#f97316';
 
+  /**
+   * @param {HTMLElement} mount
+   * @param {any} [opts]
+   */
   function Character(mount, opts) {
+    /** @type {Record<string, any>} */
+    this.groups = {};
     this.mount = mount;
     this.t = 0; // 0 = heavy, 1 = fit
     this.pose = 'idle';
@@ -140,7 +146,6 @@
     this.mount.appendChild(svg);
     this.svg = svg;
     this.body = body;
-    this.groups = {};
     ['legL', 'armL', 'torso', 'outfitDetail', 'armR', 'legR', 'neck', 'head'].forEach(key => {
       this.groups[key] = document.getElementById(this.mount.id + '_' + key);
     });
