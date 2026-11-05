@@ -118,10 +118,11 @@
     return { done: true, formScore };
   }
 
+  /** @type {Record<string, (lm: any[], state: any, scale: number) => any>} */
   const Detectors = {
     jumping_jacks(lm, state, scale) {
       if (!visAll(lm, [11, 12, 13, 14, 15, 16, 23, 24, 27, 28])) return false;
-      const armMargin = side => {
+      const armMargin = (/** @type {string} */ side) => {
         const sh = lm[side === 'L' ? 11 : 12], wr = lm[side === 'L' ? 15 : 16], el = lm[side === 'L' ? 13 : 14];
         const elbowStraightish = (angleAt(sh, el, wr) || 0) > 120;
         return elbowStraightish ? (sh.y - wr.y) / scale : -1;
@@ -136,7 +137,7 @@
 
     overhead_press(lm, state, scale) {
       if (!visAll(lm, [11, 12, 13, 14, 15, 16])) return false;
-      const raisedMargin = side => {
+      const raisedMargin = (/** @type {string} */ side) => {
         const sh = lm[side === 'L' ? 11 : 12], wr = lm[side === 'L' ? 15 : 16], el = lm[side === 'L' ? 13 : 14];
         const straight = (angleAt(sh, el, wr) || 0) > 140;
         return straight ? (sh.y - wr.y) / scale : -1;
@@ -184,7 +185,7 @@
 
     high_knees(lm, state, scale) {
       if (!visAll(lm, [23, 24, 25, 26])) return false;
-      const lift = side => {
+      const lift = (/** @type {string} */ side) => {
         const hip = lm[side === 'L' ? 23 : 24], knee = lm[side === 'L' ? 25 : 26];
         const downAngle = Math.atan2(knee.x - hip.x, knee.y - hip.y) * 180 / Math.PI;
         return Math.abs(downAngle);
@@ -264,7 +265,7 @@
 
     lateral_raises(lm, state, scale) {
       if (!visAll(lm, [11, 12, 15, 16])) return false;
-      const sideMetric = side => {
+      const sideMetric = (/** @type {string} */ side) => {
         const sh = lm[side === 'L' ? 11 : 12], wr = lm[side === 'L' ? 15 : 16];
         const atShoulderHeight = Math.abs(sh.y - wr.y) / scale < 0.14;
         const armOut = Math.abs(wr.x - sh.x) / scale;
