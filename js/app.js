@@ -2,7 +2,8 @@
    BEAT THE BULK — App orchestration
    ============================================================ */
 (function () {
-  const $ = id => document.getElementById(id);
+  /** @param {string} id @returns {HTMLElement} */
+  const $ = id => /** @type {HTMLElement} */ (document.getElementById(id));
   const store = new BTB.Store();
   const audio = BTB.Audio;
   const voice = BTB.Voice;
