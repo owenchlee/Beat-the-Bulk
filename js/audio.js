@@ -125,6 +125,7 @@
   };
 
   // ---- SFX ----
+  /** @type {Record<string, (a: any, n?: any) => void>} */
   const SFX = {
     click(a) { a._tone(a.sfxGain, { freq: 1100, type: 'square', dur: 0.045, gain: 0.10, attack: 0.002 }); },
     tabSwitch(a) {
