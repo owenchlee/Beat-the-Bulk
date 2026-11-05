@@ -199,11 +199,13 @@
     g.appendChild(spark);
   };
 
+  /** @param {number} t */
   Character.prototype._setOutfitColors = function (t) {
     document.getElementById('outfitStop1').setAttribute('stop-color', lerpColor(OUTFIT_HEAVY, '#2fbf6b', t));
     document.getElementById('outfitStop2').setAttribute('stop-color', lerpColor('#4b5563', OUTFIT_FIT, t));
   };
 
+  /** @param {any} [opts] */
   Character.prototype.update = function (opts) {
     opts = opts || {};
     if (opts.t !== undefined) this.t = clamp01(opts.t);
@@ -256,6 +258,7 @@
     const shoeStripe = lerpColor(SHOE_STRIPE_HEAVY, SHOE_STRIPE_FIT, t);
     const shortsColor = lerpColor(SHORTS_HEAVY, SHORTS_FIT, t);
 
+    /** @param {any} hip @param {any} kn @param {any} an @param {number} r1 @param {number} r2 */
     function buildLeg(hip, kn, an, r1, r2) {
       const g = document.createDocumentFragment();
       g.appendChild(limb(shortsColor, hip.x, hip.y, r1, kn.x, kn.y, r1 * 0.82));
@@ -329,10 +332,12 @@
     browR.setAttribute('transform', `rotate(${-browTilt} 114 45)`);
   };
 
+  /** @param {any} on */
   Character.prototype.showSweat = function (on) {
     const s = document.getElementById('partSweat');
     if (s) s.setAttribute('opacity', on ? '1' : '0');
   };
+  /** @param {any} on */
   Character.prototype.showSparkle = function (on) {
     const s = document.getElementById('partSparkle');
     if (s) s.style.opacity = on ? '1' : '0';
@@ -353,6 +358,7 @@
     this.mount.classList.remove('char-wiggle'); void this.mount.offsetWidth;
     this.mount.classList.add('char-wiggle');
   };
+  /** @param {any} on */
   Character.prototype.setFloat = function (on) {
     this.mount.classList.toggle('char-float', !!on);
   };
@@ -361,6 +367,7 @@
   global.BTB.Character = Character;
 
   // Random idle blink loop, started lazily by app.js
+  /** @param {any} charInstance */
   global.BTB.startBlinkLoop = function (charInstance) {
     function loop() {
       charInstance.blink();
