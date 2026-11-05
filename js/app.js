@@ -26,6 +26,7 @@
   // ---------------------------------------------------------------
   // Static icon/label injection (SVG icons, not emoji, per style guide)
   // ---------------------------------------------------------------
+  /** @param {string} id @param {string} iconName @param {string} text */
   function label(id, iconName, text) {
     const el = $(id);
     if (!el) return;
@@ -57,6 +58,7 @@
   // ---------------------------------------------------------------
   // Toast
   // ---------------------------------------------------------------
+  /** @param {string} msg */
   function toast(msg) {
     const stack = $('toastStack');
     const t = document.createElement('div');
@@ -93,6 +95,7 @@
     eatBad: ["Worth it... probably.", "We'll work it off next time.", "No regrets. Mostly."],
     milestone: ["Whoa — new milestone unlocked!", "We just hit a big goal!", "Look how far we've come!"]
   };
+  /** @param {keyof typeof MSGS} type @param {boolean} [speakToo] */
   function setBubble(type, speakToo) {
     if (type === lastBubbleType && type !== 'working') return;
     lastBubbleType = type;
@@ -110,6 +113,7 @@
     if (span <= 0) return 1;
     return Math.max(0, Math.min(1, (store.state.startWeight - store.state.weight) / span));
   }
+  /** @param {number} t */
   function stageName(t) {
     if (t < 0.15) return 'Getting Started';
     if (t < 0.4) return 'Building Momentum';
@@ -156,6 +160,7 @@
     setBubble('milestone', true);
   }
 
+  /** @param {string} [moodOverride] */
   function refreshCharacterUI(moodOverride) {
     const t = fitnessT();
     character.update({ t });
@@ -175,6 +180,7 @@
   // Tabs
   // ---------------------------------------------------------------
   const TABS = ['workout', 'progress', 'character', 'settings'];
+  /** @param {string} name */
   function switchTab(name) {
     TABS.forEach(t => {
       $('tabBtn-' + t).setAttribute('aria-selected', String(t === name));
@@ -191,6 +197,7 @@
   // ---------------------------------------------------------------
   const GOAL_ICONS = { weight_loss: 'flame', endurance: 'heart', toning: 'bolt', quick_cardio: 'clock' };
 
+  /** @param {HTMLElement} container @param {any[]} entries @param {string} selectedKey @param {Record<string,string>|null} iconMap @param {(key:string)=>void} onPick */
   function renderChoices(container, entries, selectedKey, iconMap, onPick) {
     container.innerHTML = '';
     entries.forEach(item => {
