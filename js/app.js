@@ -7,10 +7,15 @@
   const audio = BTB.Audio;
   const voice = BTB.Voice;
 
-  let character, tracker;
+  /** @type {any} */
+  let character;
+  /** @type {any} */
+  let tracker;
   let selectedGoal = store.state.goal || 'weight_loss';
   let selectedIntensity = store.state.intensity || 'moderate';
+  /** @type {any} */
   let session = null; // active workout session
+  /** @type {any} */
   let demoAnimTimer = null;
   let lastBubbleType = '';
   let resetArmed = false;
