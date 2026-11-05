@@ -71,7 +71,7 @@
     const session = data.session, store = data.store, t = data.t || 0;
     const W = 1080, H = 1080;
     canvas.width = W; canvas.height = H;
-    const ctx = canvas.getContext('2d');
+    const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
 
     const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
     bgGrad.addColorStop(0, COLORS.bgAlt);
