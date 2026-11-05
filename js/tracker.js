@@ -114,6 +114,7 @@
   }
 
   // ---- Weight-over-time line chart on <canvas> ----
+  /** @param {any} canvas @param {any} store */
   function drawWeightChart(canvas, store) {
     const ctx = canvas.getContext('2d');
     const W = canvas.clientWidth || 380, H = 170;
@@ -135,6 +136,7 @@
     const mx = Math.max(s.startWeight, ...data.map(d => d.weight)) + 4;
     const xs = (W - pad * 2) / (data.length - 1);
     const ys = (H - pad * 1.4) / (mx - mn);
+    /** @param {number} w */
     const yFor = w => (H - pad * 0.6) - (w - mn) * ys;
 
     // Goal dashed line
@@ -168,6 +170,7 @@
   }
 
   // ---- Weekly reps bar chart ----
+  /** @param {any} canvas @param {any} store */
   function drawWeeklyChart(canvas, store) {
     const ctx = canvas.getContext('2d');
     const W = canvas.clientWidth || 380, H = 120;
@@ -199,6 +202,7 @@
       ctx.fillText('D' + d.day, x + w / 2, H - 6);
     });
   }
+  /** @param {CanvasRenderingContext2D} ctx @param {number} x @param {number} y @param {number} w @param {number} h @param {number} r */
   function roundRect(ctx, x, y, w, h, r) {
     if (h < 1) h = 1;
     ctx.beginPath();
