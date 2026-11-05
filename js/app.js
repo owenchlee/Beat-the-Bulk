@@ -645,7 +645,7 @@
     });
   }
 
-  $('nameInput').addEventListener('input', e => {
+  $('nameInput').addEventListener('input', (/** @type {{target: any}} */ e) => {
     const v = e.target.value.trim() || 'Buddy';
     store.state.name = v;
     store.save();
@@ -665,15 +665,15 @@
     $('voiceToggle').checked = voice.enabled;
     $('voiceRateSlider').value = voice.rate;
 
-    $('voiceToggle').addEventListener('change', e => {
+    $('voiceToggle').addEventListener('change', (/** @type {{target: any}} */ e) => {
       voice.setEnabled(e.target.checked);
       if (e.target.checked) voice.speak('Voice coaching on.', { priority: 'high' });
     });
-    $('voiceRateSlider').addEventListener('input', e => { voice.setRate(parseFloat(e.target.value)); });
+    $('voiceRateSlider').addEventListener('input', (/** @type {{target: any}} */ e) => { voice.setRate(parseFloat(e.target.value)); });
 
-    $('musicVolSlider').addEventListener('input', e => { audio.unlock(); audio.setMusicVolume(parseFloat(e.target.value)); });
-    $('sfxVolSlider').addEventListener('input', e => { audio.unlock(); audio.setSfxVolume(parseFloat(e.target.value)); audio.play('click'); });
-    $('muteToggle').addEventListener('change', e => {
+    $('musicVolSlider').addEventListener('input', (/** @type {{target: any}} */ e) => { audio.unlock(); audio.setMusicVolume(parseFloat(e.target.value)); });
+    $('sfxVolSlider').addEventListener('input', (/** @type {{target: any}} */ e) => { audio.unlock(); audio.setSfxVolume(parseFloat(e.target.value)); audio.play('click'); });
+    $('muteToggle').addEventListener('change', (/** @type {{target: any}} */ e) => {
       audio.unlock();
       audio.setMuted(e.target.checked);
       syncMuteButton();
@@ -685,7 +685,7 @@
       syncMuteButton();
     });
 
-    $('goalWeightInput').addEventListener('change', e => {
+    $('goalWeightInput').addEventListener('change', (/** @type {{target: any}} */ e) => {
       let v = parseFloat(e.target.value);
       if (isNaN(v) || v < 90) v = 90;
       if (v > store.state.weight - 5) v = Math.max(90, store.state.weight - 5);
@@ -695,7 +695,7 @@
       refreshCharacterUI();
       toast('Goal weight updated');
     });
-    $('currentWeightInput').addEventListener('change', e => {
+    $('currentWeightInput').addEventListener('change', (/** @type {{target: any}} */ e) => {
       let v = parseFloat(e.target.value);
       if (isNaN(v) || v < 90) v = 90;
       store.state.weight = v;
