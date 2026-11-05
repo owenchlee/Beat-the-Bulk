@@ -156,7 +156,7 @@
     audio.play('milestone');
     character.showSparkle(true);
     setTimeout(() => { if (!session || session.phase !== 'done') character.showSparkle(false); }, 1600);
-    newly.forEach(a => toast(`Achievement unlocked: ${a.name}`));
+    newly.forEach((/** @type {any} */ a) => toast(`Achievement unlocked: ${a.name}`));
     setBubble('milestone', true);
   }
 
@@ -220,9 +220,9 @@
       selectedIntensity = key; store.state.intensity = key; store.save(); renderSetup();
     });
     const preview = BTB.buildWorkout(selectedGoal, selectedIntensity, store.state.day);
-    const totalReps = preview.exercises.reduce((a, e) => a + e.reps, 0);
-    const kcal = preview.exercises.reduce((a, e) => a + BTB.estimateCalories(e, e.reps, store.state.weight), 0);
-    const activeMin = preview.exercises.reduce((a, e) => a + e.secPerRep * e.reps, 0) / 60;
+    const totalReps = preview.exercises.reduce((/** @type {number} */ a, /** @type {any} */ e) => a + e.reps, 0);
+    const kcal = preview.exercises.reduce((/** @type {number} */ a, /** @type {any} */ e) => a + BTB.estimateCalories(e, e.reps, store.state.weight), 0);
+    const activeMin = preview.exercises.reduce((/** @type {number} */ a, /** @type {any} */ e) => a + e.secPerRep * e.reps, 0) / 60;
     const restMin = (preview.exercises.length - 1) * preview.intensity.restSec / 60;
     const totalMin = Math.max(1, Math.round(activeMin + restMin));
     $('setupSummary').innerHTML = `
@@ -248,7 +248,7 @@
   function buildQueueUI() {
     const list = $('queueList');
     list.innerHTML = '';
-    session.exercises.forEach((ex, i) => {
+    session.exercises.forEach((/** @type {any} */ ex, /** @type {number} */ i) => {
       const cls = i < session.idx ? 'done' : i === session.idx ? 'active' : 'pending';
       const row = document.createElement('div');
       row.className = 'q-item ' + cls;
@@ -257,10 +257,11 @@
     });
   }
 
+  /** @param {any} ex */
   function loadExerciseUI(ex) {
     $('exName').textContent = ex.name;
     $('exTip').textContent = ex.tip;
-    $('exTags').innerHTML = ex.tags.map(t => `<span class="tag">${t}</span>`).join('');
+    $('exTags').innerHTML = ex.tags.map((/** @type {string} */ t) => `<span class="tag">${t}</span>`).join('');
     $('repNum').textContent = '0';
     $('repOf').textContent = `/ ${ex.reps} reps`;
     $('repBar').style.width = '0%';
@@ -269,17 +270,18 @@
     demoAnimTimer = setInterval(() => { ph = 1 - ph; ex.demo(ph); }, 900);
   }
 
+  /** @param {number} seconds @param {string} startLabel @param {string} doneLabel @param {() => void} cb */
   function runCountdown(seconds, startLabel, doneLabel, cb) {
     const overlay = $('countdownOverlay'), num = $('countdownNum'), lbl = $('countdownLabel');
     overlay.classList.remove('hidden');
     lbl.textContent = startLabel;
     let n = seconds;
-    num.textContent = n;
+    num.textContent = String(n);
     if (n <= 3) { audio.play('countdownTick', n); voice.speak(String(n), { priority: 'high' }); }
     const iv = setInterval(() => {
       n--;
       if (n > 0) {
-        num.textContent = n;
+        num.textContent = String(n);
         if (n <= 3) { audio.play('countdownTick', n); voice.speak(String(n), { priority: 'high' }); }
       } else {
         clearInterval(iv);
@@ -291,6 +293,7 @@
     }, 1000);
   }
 
+  /** @param {number} idx */
   function beginExercise(idx) {
     session.idx = idx;
     session.reps = 0;
@@ -310,6 +313,7 @@
     });
   }
 
+  /** @param {any} ex */
   function startDemoFallback(ex) {
     stopDemoFallback();
     session.demoTimer = setInterval(() => {
@@ -320,6 +324,7 @@
     if (session && session.demoTimer) { clearInterval(session.demoTimer); session.demoTimer = null; }
   }
 
+  /** @param {number} [formScore] */
   function handleRep(formScore) {
     if (!session || session.phase !== 'active') return;
     const ex = session.exercises[session.idx];
@@ -469,7 +474,7 @@
       <button class="btn btn-primary btn-block" id="sleepBtn" disabled>${BTB.icon('check', 16)}<span>Sleep &amp; Start Tomorrow</span></button>
     `;
     const belt = $('belt');
-    BTB.Foods.forEach(f => {
+    BTB.Foods.forEach((/** @type {any} */ f) => {
       const b = document.createElement('button');
       b.className = `food-btn ${f.healthy ? 'healthy' : 'unhealthy'}`;
       b.textContent = f.e;
@@ -587,7 +592,7 @@
       return;
     }
     list.innerHTML = '';
-    store.history.slice().reverse().slice(0, 20).forEach(h => {
+    store.history.slice().reverse().slice(0, 20).forEach((/** @type {any} */ h) => {
       const row = document.createElement('div');
       row.className = 'history-row';
       row.innerHTML = `
@@ -631,7 +636,7 @@
     const list = $('achievementsList');
     list.innerHTML = '';
     const unlocked = store.state.unlockedAchievements || [];
-    BTB.Achievements.forEach(a => {
+    BTB.Achievements.forEach((/** @type {any} */ a) => {
       const done = unlocked.includes(a.id);
       const row = document.createElement('div');
       row.className = 'history-row';
