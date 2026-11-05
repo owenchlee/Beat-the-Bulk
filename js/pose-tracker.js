@@ -47,7 +47,9 @@
   function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
   /** @param {number} d @returns {number} Delta normalized into [-180, 180]. */
   function normAngleDelta(d) { while (d > 180) d -= 360; while (d < -180) d += 360; return d; }
+  /** @param {any[]} lm @param {number} i @param {number} [thr] @returns {boolean} */
   function vis(lm, i, thr) { return !!(lm[i] && lm[i].visibility !== undefined && lm[i].visibility > (thr || 0.45)); }
+  /** @param {any[]} lm @param {number[]} idxs @param {number} [thr] @returns {boolean} */
   function visAll(lm, idxs, thr) { return idxs.every(i => vis(lm, i, thr)); }
 
   /**
