@@ -205,6 +205,14 @@
   function lbsToKcal(lbs) { return lbs * 3500; }
 
   // ---- Compact stick-figure demo renderer (used in the exercise preview card) ----
+  /**
+   * @param {number} headCy
+   * @param {number} bodyLen
+   * @param {number} lArmAngle
+   * @param {number} rArmAngle
+   * @param {number} lLegAngle
+   * @param {number} rLegAngle
+   */
   function stick(headCy, bodyLen, lArmAngle, rArmAngle, lLegAngle, rLegAngle) {
     const r = 10, nY = headCy + r, bY = nY + bodyLen;
     const la = lArmAngle * Math.PI / 180, ra = rArmAngle * Math.PI / 180;
@@ -218,10 +226,14 @@
       <line x1="45" y1="${bY}" x2="${45 + 22 * Math.cos(rl)}" y2="${bY + 22 * Math.sin(rl)}" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>
     `;
   }
+  /** @param {string} html */
   function setDemo(html) { const e = document.getElementById('demoSvg'); if (e) e.innerHTML = html; }
 
+  /** @param {number} ph */
   function demoJJ(ph) { setDemo(ph === 0 ? stick(18, 28, 210, 330, 120, 60) : stick(18, 28, 135, 45, 150, 30)); }
+  /** @param {number} ph */
   function demoOverhead(ph) { setDemo(ph === 0 ? stick(18, 30, 200, 340, 110, 70) : stick(18, 30, 90, 90, 110, 70)); }
+  /** @param {number} ph */
   function demoSquat(ph) {
     setDemo(ph === 0 ? stick(14, 32, 200, 340, 110, 70) : `
       <circle cx="45" cy="38" r="10" fill="#ffd4a3" stroke="#c98452" stroke-width="1.5"/>
@@ -231,6 +243,7 @@
       <line x1="45" y1="64" x2="24" y2="84" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>
       <line x1="45" y1="64" x2="66" y2="84" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>`);
   }
+  /** @param {number} ph */
   function demoSideReach(ph) {
     setDemo(ph === 0 ? `
       <circle cx="45" cy="18" r="10" fill="#ffd4a3" stroke="#c98452" stroke-width="1.5"/>
@@ -246,6 +259,7 @@
       <line x1="45" y1="58" x2="33" y2="82" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>
       <line x1="45" y1="58" x2="57" y2="82" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>`);
   }
+  /** @param {number} ph */
   function demoHighKnee(ph) {
     setDemo(ph === 0 ? `
       <circle cx="45" cy="16" r="10" fill="#ffd4a3" stroke="#c98452" stroke-width="1.5"/>
@@ -263,6 +277,7 @@
       <line x1="45" y1="54" x2="58" y2="44" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>
       <line x1="58" y1="44" x2="62" y2="62" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>`);
   }
+  /** @param {number} ph */
   function demoArmCircle(ph) {
     setDemo(ph === 0 ? `
       <circle cx="45" cy="18" r="10" fill="#ffd4a3" stroke="#c98452" stroke-width="1.5"/>
@@ -280,6 +295,7 @@
       <line x1="45" y1="56" x2="57" y2="80" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>
       <path d="M76 28 Q84 40 72 48" stroke="#fbbf24" stroke-width="2" fill="none" stroke-dasharray="3 2" stroke-linecap="round"/>`);
   }
+  /** @param {number} ph */
   function demoPushup(ph) {
     setDemo(ph === 0 ? `
       <circle cx="18" cy="70" r="9" fill="#ffd4a3" stroke="#c98452" stroke-width="1.5"/>
@@ -291,6 +307,7 @@
       <line x1="30" y1="58" x2="42" y2="90" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
       <line x1="70" y1="70" x2="70" y2="90" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>`);
   }
+  /** @param {number} ph */
   function demoLunge(ph) {
     setDemo(ph === 0 ? stick(14, 30, 190, 350, 100, 80) : `
       <circle cx="45" cy="16" r="10" fill="#ffd4a3" stroke="#c98452" stroke-width="1.5"/>
@@ -302,8 +319,11 @@
       <line x1="45" y1="52" x2="68" y2="66" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/>
       <line x1="68" y1="66" x2="60" y2="88" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>`);
   }
+  /** @param {number} ph */
   function demoBicepCurl(ph) { setDemo(ph === 0 ? stick(18, 30, 200, 340, 110, 70) : stick(18, 30, 120, 60, 110, 70)); }
+  /** @param {number} ph */
   function demoLateralRaise(ph) { setDemo(ph === 0 ? stick(18, 30, 200, 340, 110, 70) : stick(18, 30, 175, 5, 110, 70)); }
+  /** @param {number} ph */
   function demoToeTouch(ph) {
     setDemo(ph === 0 ? `
       <circle cx="45" cy="16" r="10" fill="#ffd4a3" stroke="#c98452" stroke-width="1.5"/>
