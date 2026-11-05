@@ -288,6 +288,11 @@
     }
   };
 
+  /**
+   * @param {any} videoEl
+   * @param {any} canvasEl
+   * @param {any} [opts]
+   */
   function Tracker(videoEl, canvasEl, opts) {
     this.video = videoEl;
     this.canvas = canvasEl;
@@ -305,27 +310,30 @@
 
   Tracker.prototype._initPose = function () {
     const self = this;
-    this.pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}` });
+    this.pose = new Pose({ locateFile: (/** @type {string} */ f) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}` });
     this.pose.setOptions({
       modelComplexity: 1,
       smoothLandmarks: true,
       minDetectionConfidence: 0.6,
       minTrackingConfidence: 0.6
     });
-    this.pose.onResults(res => self._onResults(res));
+    this.pose.onResults((/** @type {any} */ res) => self._onResults(res));
   };
 
+  /** @param {string} detectorKey */
   Tracker.prototype.setExercise = function (detectorKey) {
     this.currentDetectorKey = detectorKey;
     this.exState = freshState();
   };
 
+  /** @param {boolean} on */
   Tracker.prototype.setEnabled = function (on) { this.enabled = on; };
 
+  /** @param {any[]} raw */
   Tracker.prototype._smooth = function (raw) {
     const ALPHA = 0.5;
     if (!this.smoothed) {
-      this.smoothed = raw.map(p => ({ x: p.x, y: p.y, z: p.z, visibility: p.visibility }));
+      this.smoothed = raw.map((/** @type {any} */ p) => ({ x: p.x, y: p.y, z: p.z, visibility: p.visibility }));
       return this.smoothed;
     }
     for (let i = 0; i < raw.length; i++) {
@@ -337,6 +345,7 @@
     return this.smoothed;
   };
 
+  /** @param {any} results */
   Tracker.prototype._onResults = function (results) {
     const canvas = this.canvas, ctx = this.ctx;
     canvas.width = this.video.videoWidth || 640;
