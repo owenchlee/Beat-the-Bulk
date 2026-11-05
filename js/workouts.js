@@ -57,6 +57,7 @@
  */
 
 (function (global) {
+  /** @type {Record<string, any>} */
   const EXERCISES = {
     jumping_jacks: {
       key: 'jumping_jacks', name: 'Jumping Jacks', met: 8, secPerRep: 1.1,
@@ -126,6 +127,7 @@
     }
   };
 
+  /** @type {Record<string, any>} */
   const GOALS = {
     weight_loss: {
       key: 'weight_loss', label: 'Weight Loss', desc: 'Cardio-heavy circuit to maximize calorie burn.',
@@ -145,6 +147,7 @@
     }
   };
 
+  /** @type {Record<string, any>} */
   const INTENSITIES = {
     light: { key: 'light', label: 'Light', repsMult: 0.7, restSec: 20, desc: 'Easy pace, great for beginners' },
     moderate: { key: 'moderate', label: 'Moderate', repsMult: 1.0, restSec: 15, desc: 'Balanced, steady effort' },
@@ -169,6 +172,7 @@
     function rnd() { seed = (seed * 1664525 + 1013904223) & 0x7fffffff; return seed; }
     const pool = goal.pool.slice();
     const chosen = [];
+    /** @type {Record<string, number>} */
     const seen = {};
     let guard = 0;
     while (chosen.length < goal.count && guard < 200) {

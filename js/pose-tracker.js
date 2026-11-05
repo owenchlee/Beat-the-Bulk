@@ -102,7 +102,7 @@
    * `active` was already decided by the caller, tracking the deepest
    * (best-form) value reached during the active phase in state.formT, and
    * emitting {done, formScore} on rep completion instead of a bare boolean.
-   * @param {Object} state
+   * @param {{phase?: string, aHold?: number, rHold?: number, formT?: number}} state
    * @param {boolean} active
    * @param {number} metric
    * @param {number} atThreshold
