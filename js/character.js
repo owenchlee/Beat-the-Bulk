@@ -201,8 +201,8 @@
 
   /** @param {number} t */
   Character.prototype._setOutfitColors = function (t) {
-    document.getElementById('outfitStop1').setAttribute('stop-color', lerpColor(OUTFIT_HEAVY, '#2fbf6b', t));
-    document.getElementById('outfitStop2').setAttribute('stop-color', lerpColor('#4b5563', OUTFIT_FIT, t));
+    document.getElementById('outfitStop1')?.setAttribute('stop-color', lerpColor(OUTFIT_HEAVY, '#2fbf6b', t));
+    document.getElementById('outfitStop2')?.setAttribute('stop-color', lerpColor('#4b5563', OUTFIT_FIT, t));
   };
 
   /** @param {any} [opts] */
@@ -212,7 +212,7 @@
     if (opts.pose) this.pose = opts.pose;
     if (opts.mood) this.mood = opts.mood;
     const t = this.t;
-    const P = POSES[this.pose] || POSES.idle;
+    const P = /** @type {any} */ (POSES)[this.pose] || POSES.idle;
     this._setOutfitColors(t);
 
     // ---- Proportions driven by t ----
@@ -228,7 +228,7 @@
     const cx = 100, shoulderY = 96 + bob, hipY = 150 + bob;
     const lean = P.lean;
 
-    this.body.setAttribute('transform', `rotate(${lean} 100 150)`);
+    this.body?.setAttribute('transform', `rotate(${lean} 100 150)`);
 
     // Shoulders / hips anchor points
     const shL = { x: cx - shoulderGap / 2, y: shoulderY };
@@ -306,9 +306,9 @@
     this.groups.head.setAttribute('transform', `translate(0 ${bob * 0.3})`);
 
     // ---- Aura ----
-    document.getElementById('auraGlow').setAttribute('opacity', (0.08 + t * 0.22).toFixed(2));
-    document.getElementById('auraGlow').setAttribute('rx', String(70 + t * 14));
-    document.getElementById('auraGlow').setAttribute('ry', String(88 + t * 10));
+    document.getElementById('auraGlow')?.setAttribute('opacity', (0.08 + t * 0.22).toFixed(2));
+    document.getElementById('auraGlow')?.setAttribute('rx', String(70 + t * 14));
+    document.getElementById('auraGlow')?.setAttribute('ry', String(88 + t * 10));
 
     this._applyMood();
   };
@@ -328,8 +328,8 @@
       default: curve = 78 - baseSmile; browTilt = -baseSmile * 0.3;
     }
     mouth.setAttribute('d', `M86 76 Q100 ${curve} 114 76`);
-    browL.setAttribute('transform', `rotate(${browTilt} 86 45)`);
-    browR.setAttribute('transform', `rotate(${-browTilt} 114 45)`);
+    browL?.setAttribute('transform', `rotate(${browTilt} 86 45)`);
+    browR?.setAttribute('transform', `rotate(${-browTilt} 114 45)`);
   };
 
   /** @param {any} on */
