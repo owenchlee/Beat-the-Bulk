@@ -7,18 +7,19 @@
    ============================================================ */
 (function (global) {
   function AudioEngine() {
-    this.ctx = null;
-    this.master = null;
-    this.musicGain = null;
-    this.sfxGain = null;
-    this.shimmerDelay = null;
+    this.ctx = /** @type {AudioContext} */ (/** @type {unknown} */ (null));
+    this.master = /** @type {GainNode} */ (/** @type {unknown} */ (null));
+    this.musicGain = /** @type {GainNode} */ (/** @type {unknown} */ (null));
+    this.sfxGain = /** @type {GainNode} */ (/** @type {unknown} */ (null));
+    this.shimmerDelay = /** @type {DelayNode} */ (/** @type {unknown} */ (null));
     this.noiseBuffer = null;
     this.unlocked = false;
     this.musicPlaying = false;
     this.musicTimer = null;
     this.step = 0;
+    this.nextStepTime = 0;
     this.bpm = 116;
-    this.pattern = 'A';
+    this.pattern = /** @type {'A'|'B'} */ ('A');
     this.muted = localStorage.getItem('btb_muted') === '1';
     this.musicVol = parseFloat(localStorage.getItem('btb_musicVol') || '0.55');
     this.sfxVol = parseFloat(localStorage.getItem('btb_sfxVol') || '0.8');
@@ -64,20 +65,24 @@
     this.noiseBuffer = buf;
   };
 
+  /** @param {number} v */
   AudioEngine.prototype.setMusicVolume = function (v) {
-    this.musicVol = v; localStorage.setItem('btb_musicVol', v);
+    this.musicVol = v; localStorage.setItem('btb_musicVol', String(v));
     if (this.musicGain) this.musicGain.gain.setTargetAtTime(v, this.ctx.currentTime, 0.05);
   };
+  /** @param {number} v */
   AudioEngine.prototype.setSfxVolume = function (v) {
-    this.sfxVol = v; localStorage.setItem('btb_sfxVol', v);
+    this.sfxVol = v; localStorage.setItem('btb_sfxVol', String(v));
     if (this.sfxGain) this.sfxGain.gain.setTargetAtTime(v, this.ctx.currentTime, 0.05);
   };
+  /** @param {boolean} m */
   AudioEngine.prototype.setMuted = function (m) {
     this.muted = m; localStorage.setItem('btb_muted', m ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 1, this.ctx.currentTime, 0.05);
   };
 
   // ---- Primitives ----
+  /** @param {AudioNode} bus @param {any} opts */
   AudioEngine.prototype._tone = function (bus, opts) {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -106,6 +111,7 @@
     osc.stop(t0 + (opts.dur || 0.2) + 0.05);
   };
 
+  /** @param {AudioNode} bus @param {any} opts */
   AudioEngine.prototype._noise = function (bus, opts) {
     if (!this.ctx || !this.noiseBuffer) return;
     const ctx = this.ctx;
@@ -167,6 +173,7 @@
     }
   };
 
+  /** @param {string} name @param {any} [arg] */
   AudioEngine.prototype.play = function (name, arg) {
     if (!this.unlocked) return;
     const fn = SFX[name];
@@ -182,6 +189,7 @@
   const KICK_STEPS = [0, 8];
   const SNARE_STEPS = [4, 12];
 
+  /** @param {number} stepIndex @param {number} time */
   AudioEngine.prototype._scheduleStep = function (stepIndex, time) {
     const ctx = this.ctx;
     const pat = PATTERNS[this.pattern];
@@ -250,6 +258,7 @@
     }
   };
 
+  /** @param {string} intensity */
   AudioEngine.prototype.startMusic = function (intensity) {
     if (!this.unlocked || this.musicPlaying) return;
     this.bpm = intensity === 'intense' ? 140 : intensity === 'light' ? 100 : 120;
@@ -270,6 +279,7 @@
     }, lookahead);
   };
 
+  /** @param {string} intensity */
   AudioEngine.prototype.setIntensity = function (intensity) {
     this.bpm = intensity === 'intense' ? 140 : intensity === 'light' ? 100 : 120;
   };
