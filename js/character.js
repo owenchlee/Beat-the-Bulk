@@ -10,13 +10,17 @@
   const NS = 'http://www.w3.org/2000/svg';
   const TAU = Math.PI / 180;
 
+  /** @param {number} a @param {number} b @param {number} t */
   function lerp(a, b, t) { return a + (b - a) * t; }
+  /** @param {number} t */
   function clamp01(t) { return Math.max(0, Math.min(1, t)); }
 
+  /** @param {string} hex */
   function hexToRgb(hex) {
     const n = parseInt(hex.replace('#', ''), 16);
     return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
   }
+  /** @param {string} hexA @param {string} hexB @param {number} t */
   function lerpColor(hexA, hexB, t) {
     const a = hexToRgb(hexA), b = hexToRgb(hexB);
     const r = Math.round(lerp(a.r, b.r, t));
@@ -25,6 +29,7 @@
     return `rgb(${r},${g},${bl})`;
   }
 
+  /** @param {number} cx @param {number} cy @param {number} angDeg @param {number} len */
   function polar(cx, cy, angDeg, len) {
     const a = angDeg * TAU;
     return { x: cx + len * Math.cos(a), y: cy + len * Math.sin(a) };
@@ -35,6 +40,7 @@
   // primitives are far more robust than a single hand-rolled arc path (which
   // can self-intersect and carve a hole when radii differ) and render
   // identically once filled with the same color.
+  /** @param {string} fill @param {number} x1 @param {number} y1 @param {number} r1 @param {number} x2 @param {number} y2 @param {number} r2 */
   function limb(fill, x1, y1, r1, x2, y2, r2) {
     const dx = x2 - x1, dy = y2 - y1;
     const len = Math.hypot(dx, dy) || 1;
@@ -53,6 +59,7 @@
     return frag;
   }
 
+  /** @param {string} tag @param {Record<string, any>} attrs */
   function el(tag, attrs) {
     const e = document.createElementNS(NS, tag);
     for (const k in attrs) e.setAttribute(k, attrs[k]);
