@@ -137,7 +137,7 @@
     ctx.clearRect(0, 0, W, H);
 
     const s = store.state;
-    const data = [{ day: 0, weight: s.startWeight }].concat(store.history.map(h => ({ day: h.day, weight: h.weight })));
+    const data = [{ day: 0, weight: s.startWeight }].concat(store.history.filter(h => h && Number.isFinite(h.weight) && Number.isFinite(h.day)).map(h => ({ day: h.day, weight: h.weight })));
     if (data.length < 2) {
       ctx.fillStyle = '#6b7386'; ctx.font = '13px Barlow, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('Complete a workout to start your chart', W / 2, H / 2);

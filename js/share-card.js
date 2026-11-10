@@ -102,7 +102,7 @@
     roundRect(ctx, cardX, cardY, cardW, cardH, 28); ctx.stroke();
 
     const reps = (session && session.repsTotal) || 0;
-    const kcal = Math.round((session && session.caloriesBurned) || 0);
+    const kcal = Math.round(session && Number.isFinite(session.caloriesBurned) ? session.caloriesBurned : 0);
     const streak = store.state.streak;
     const avgForm = session && session.formScoreCount ? Math.round(session.formScoreSum / session.formScoreCount) : null;
 
