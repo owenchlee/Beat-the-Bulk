@@ -151,8 +151,13 @@
       const kneeR = angleAt(lm[24], lm[26], lm[28]);
       if (kneeL === null || kneeR === null) return false;
       const avg = (kneeL + kneeR) / 2;
-      const active = avg < 130; // bent knees
-      return cycleScored(state, active, avg, 130, 90);
+      // Front view: knee angle stays ~180, but the thigh's share of the hip->ankle vertical span shrinks
+      // (standing ~0.5, deep squat ~0.39); a ratio needs no torso scale.
+      const span = (lm[27].y - lm[23].y) + (lm[28].y - lm[24].y);
+      const drop = span > 1e-5 ? ((lm[25].y - lm[23].y) + (lm[26].y - lm[24].y)) / span : 1;
+      const active = avg < 130 || drop < 0.45;
+      const t = Math.max(normT(avg, 130, 90), normT(drop, 0.45, 0.35));
+      return cycleScored(state, active, t, 0, 1);
     },
 
     side_reaches(lm, state, scale) {
