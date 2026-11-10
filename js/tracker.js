@@ -190,7 +190,8 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
 
-    const last7 = store.history.slice(-7);
+    const last7 = store.history.filter(d => d && typeof d === 'object').slice(-7)
+      .map(d => ({ day: Number.isFinite(d.day) ? d.day : '?', repsTotal: Number.isFinite(d.repsTotal) ? Math.max(0, d.repsTotal) : 0 }));
     if (!last7.length) {
       ctx.fillStyle = '#6b7386'; ctx.font = '12px Barlow, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('No workouts logged yet', W / 2, H / 2);

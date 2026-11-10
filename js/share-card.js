@@ -101,9 +101,9 @@
     ctx.strokeStyle = COLORS.border; ctx.lineWidth = 2;
     roundRect(ctx, cardX, cardY, cardW, cardH, 28); ctx.stroke();
 
-    const reps = (session && session.repsTotal) || 0;
+    const reps = session && Number.isFinite(session.repsTotal) ? session.repsTotal : 0;
     const kcal = Math.round(session && Number.isFinite(session.caloriesBurned) ? session.caloriesBurned : 0);
-    const streak = store.state.streak;
+    const streak = Number.isFinite(store.state.streak) ? store.state.streak : 0;
     const avgForm = session && session.formScoreCount ? Math.round(session.formScoreSum / session.formScoreCount) : null;
 
     const stats = [
@@ -127,7 +127,7 @@
 
     ctx.fillStyle = COLORS.accent;
     ctx.font = '700 30px "Barlow Condensed", sans-serif';
-    ctx.fillText(`${store.state.name} is down to ${Math.round(store.state.weight)} lbs`, W / 2, cardY + 260);
+    ctx.fillText(`${store.state.name || 'Athlete'} is down to ${Math.round(Number.isFinite(store.state.weight) ? store.state.weight : 0)} lbs`, W / 2, cardY + 260);
 
     if (avgForm !== null) {
       ctx.fillStyle = avgForm >= 80 ? COLORS.accent : avgForm >= 55 ? COLORS.warning : COLORS.destructive;
