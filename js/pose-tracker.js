@@ -190,7 +190,11 @@
       const lift = side => {
         const hip = lm[side === 'L' ? 23 : 24], knee = lm[side === 'L' ? 25 : 26];
         const downAngle = Math.atan2(knee.x - hip.x, knee.y - hip.y) * 180 / Math.PI;
-        return Math.abs(downAngle);
+        // Front view: a knee raised toward the camera keeps downAngle ~0 but its drop below the hip shrinks
+        // (standing ~0.8 torso, raised ~0.05); map that drop onto the same 48-75 degree scale.
+        const drop = (knee.y - hip.y) / scale;
+        const dropLift = drop < 0.45 ? 48 + normT(drop, 0.45, 0.10) * 27 : 0;
+        return Math.max(Math.abs(downAngle), dropLift);
       };
       const liftL = lift('L'), liftR = lift('R');
       const active = Math.max(liftL, liftR) > 48;
