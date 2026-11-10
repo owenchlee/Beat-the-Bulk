@@ -289,8 +289,14 @@
       const hipAngleR = angleAt(lm[12], lm[24], lm[26]);
       if (hipAngleL === null || hipAngleR === null) return false;
       const avg = (hipAngleL + hipAngleR) / 2;
-      const active = avg < 100; // torso folded forward at the hips
-      return cycleScored(state, active, avg, 100, 70);
+      // Front view: the hip angle stays ~180, but the torso's vertical extent collapses relative to the
+      // thigh's (standing ~1.25, folded ~0.1); a ratio of vertical spans needs no torso scale.
+      const thigh = (lm[25].y - lm[23].y) + (lm[26].y - lm[24].y);
+      const trunk = (lm[23].y - lm[11].y) + (lm[24].y - lm[12].y);
+      const ratio = thigh > 1e-5 ? trunk / thigh : 9;
+      const active = avg < 100 || ratio < 0.6; // torso folded forward at the hips
+      const t = Math.max(normT(avg, 100, 70), normT(ratio, 0.6, 0.3));
+      return cycleScored(state, active, t, 0, 1);
     }
   };
 
