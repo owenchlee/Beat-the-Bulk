@@ -51,10 +51,12 @@
 
   function Store() {
     /** @type {StoreState} */
-    this.state = Object.assign({}, DEFAULTS, this._loadJSON('btb_state', {}));
+    this.state = Object.assign({}, DEFAULTS, this._plainObject(this._loadJSON('btb_state', {})));
     this._ensureCollections();
     /** @type {DayRecord[]} */
     this.history = this._loadJSON('btb_history', []);
+    if (!Array.isArray(this.history)) this.history = [];
+    this.history = this.history.filter(r => r && typeof r === 'object');
   }
   /**
    * @param {string} key
@@ -67,9 +69,11 @@
   };
   // DEFAULTS stays primitive-only so Object.assign never aliases a shared
   // array/object across Store instances; collection fields are seeded here.
+  Store.prototype._plainObject = function (v) { return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; };
   Store.prototype._ensureCollections = function () {
-    if (!this.state.unlockedAchievements) this.state.unlockedAchievements = [];
-    if (!this.state.exercisesTried) this.state.exercisesTried = {};
+    if (!Array.isArray(this.state.unlockedAchievements)) this.state.unlockedAchievements = [];
+    const et = this.state.exercisesTried;
+    if (!et || typeof et !== 'object' || Array.isArray(et)) this.state.exercisesTried = {};
   };
   /** @param {string} id */
   Store.prototype.unlockAchievement = function (id) {
@@ -80,8 +84,10 @@
     this.state.exercisesTried[key] = true;
   };
   Store.prototype.save = function () {
-    localStorage.setItem('btb_state', JSON.stringify(this.state));
-    localStorage.setItem('btb_history', JSON.stringify(this.history));
+    try { // blocked/full storage: keep in-memory state working
+      localStorage.setItem('btb_state', JSON.stringify(this.state));
+      localStorage.setItem('btb_history', JSON.stringify(this.history));
+    } catch (e) { /* ignore */ }
   };
   Store.prototype.reset = function () {
     this.state = Object.assign({}, DEFAULTS);

@@ -5,23 +5,26 @@
    same "runs entirely in the browser" spirit as js/audio.js.
    ============================================================ */
 (function (global) {
+  // storage may be blocked or full: settings are best-effort
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
   function VoiceEngine() {
     this.supported = typeof window !== 'undefined' && 'speechSynthesis' in window;
-    this.enabled = localStorage.getItem('btb_voiceEnabled') !== '0'; // on by default
-    this.rate = parseFloat(localStorage.getItem('btb_voiceRate') || '1');
+    this.enabled = lsGet('btb_voiceEnabled') !== '0'; // on by default
+    this.rate = parseFloat(lsGet('btb_voiceRate') || '1');
   }
 
   /** @param {boolean} on */
   VoiceEngine.prototype.setEnabled = function (on) {
     this.enabled = !!on;
-    localStorage.setItem('btb_voiceEnabled', this.enabled ? '1' : '0');
+    lsSet('btb_voiceEnabled', this.enabled ? '1' : '0');
     if (!this.enabled && this.supported) window.speechSynthesis.cancel();
   };
 
   /** @param {number} rate - 0.5 (slow) to 1.5 (fast). */
   VoiceEngine.prototype.setRate = function (rate) {
     this.rate = rate;
-    localStorage.setItem('btb_voiceRate', String(rate));
+    lsSet('btb_voiceRate', String(rate));
   };
 
   /**
