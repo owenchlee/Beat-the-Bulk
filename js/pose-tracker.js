@@ -302,6 +302,8 @@
 
   Tracker.prototype._initPose = function () {
     const self = this;
+    this.pose = null;
+    if (typeof Pose !== 'function') return; // MediaPipe CDN unreachable: start() rejects, app falls back to demo
     this.pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}` });
     this.pose.setOptions({
       modelComplexity: 1,
@@ -372,6 +374,7 @@
 
   Tracker.prototype.start = function () {
     const self = this;
+    if (!this.pose || typeof Camera !== 'function') return Promise.reject(new Error('MediaPipe unavailable'));
     return navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } })
       .then(stream => {
         this.video.srcObject = stream;
