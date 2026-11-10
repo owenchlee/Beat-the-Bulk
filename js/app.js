@@ -3,6 +3,7 @@
    ============================================================ */
 (function () {
   const $ = id => document.getElementById(id);
+  const esc = v => String(v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
   const store = new BTB.Store();
   const audio = BTB.Audio;
   const voice = BTB.Voice;
@@ -55,7 +56,7 @@
     const stack = $('toastStack');
     const t = document.createElement('div');
     t.className = 'toast';
-    t.innerHTML = BTB.icon('check', 16) + `<span>${msg}</span>`;
+    t.innerHTML = BTB.icon('check', 16) + `<span>${esc(msg)}</span>`;
     stack.appendChild(t);
     setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 320); }, 3200);
   }
@@ -239,7 +240,7 @@
       const cls = i < session.idx ? 'done' : i === session.idx ? 'active' : 'pending';
       const row = document.createElement('div');
       row.className = 'q-item ' + cls;
-      row.innerHTML = `<div class="q-check">${i < session.idx ? BTB.icon('check', 12) : ''}</div>${ex.name}<span class="q-meta">${ex.reps} reps</span>`;
+      row.innerHTML = `<div class="q-check">${i < session.idx ? BTB.icon('check', 12) : ''}</div>${esc(ex.name)}<span class="q-meta">${esc(ex.reps)} reps</span>`;
       list.appendChild(row);
     });
   }
@@ -437,7 +438,7 @@
     const box = $('modalBox');
     box.innerHTML = `
       <h2>Workout Complete!</h2>
-      <div class="sub">${store.state.name} is down to <strong>${Math.round(store.state.weight)} lbs</strong> — ${lost} lbs lost on this journey so far.<br>Now it's dinner. Your choices here matter just as much as the workout.</div>
+      <div class="sub">${esc(store.state.name)} is down to <strong>${Math.round(store.state.weight)} lbs</strong> — ${lost} lbs lost on this journey so far.<br>Now it's dinner. Your choices here matter just as much as the workout.</div>
       ${avgFormScore !== null ? `<div class="result-pills"><div class="pill ${avgFormScore >= 80 ? 'pill-good' : avgFormScore >= 55 ? 'pill-info' : 'pill-bad'}">Avg form score: ${avgFormScore}</div></div>` : ''}
       <button class="btn btn-ghost btn-block btn-sm" id="shareBtn" style="margin-bottom:var(--sp-4)">${BTB.icon('share', 16)}<span>Share Result</span></button>
       <div class="food-game">
@@ -578,9 +579,9 @@
       const row = document.createElement('div');
       row.className = 'history-row';
       row.innerHTML = `
-        <div class="history-day">Day ${h.day}</div>
-        <div class="history-detail">${h.exercisesCompleted} exercises · ${h.repsTotal} reps · ${h.caloriesBurned} kcal burned</div>
-        <div class="history-weight">${h.weight} lbs</div>
+        <div class="history-day">Day ${esc(h.day)}</div>
+        <div class="history-detail">${esc(h.exercisesCompleted)} exercises · ${esc(h.repsTotal)} reps · ${esc(h.caloriesBurned)} kcal burned</div>
+        <div class="history-weight">${esc(h.weight)} lbs</div>
       `;
       list.appendChild(row);
     });
@@ -590,7 +591,7 @@
   // Character tab
   // ---------------------------------------------------------------
   function renderCharacterTab() {
-    $('charAboutTitle').innerHTML = BTB.icon('user', 18) + `<span>About ${store.state.name}</span>`;
+    $('charAboutTitle').innerHTML = BTB.icon('user', 18) + `<span>About ${esc(store.state.name)}</span>`;
     $('nameInput').value = store.state.name;
     const t = fitnessT();
     $('charStatsGrid').innerHTML = `
@@ -637,7 +638,7 @@
     store.state.name = v;
     store.save();
     $('charNameDisplay').textContent = v;
-    $('charAboutTitle').innerHTML = BTB.icon('user', 18) + `<span>About ${v}</span>`;
+    $('charAboutTitle').innerHTML = BTB.icon('user', 18) + `<span>About ${esc(v)}</span>`;
   });
 
   // ---------------------------------------------------------------
