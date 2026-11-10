@@ -231,13 +231,20 @@
     },
 
     push_ups(lm, state, scale) {
-      if (!visAll(lm, [11, 12, 13, 14, 15, 16])) return false;
-      const elbowL = angleAt(lm[11], lm[13], lm[15]);
-      const elbowR = angleAt(lm[12], lm[14], lm[16]);
-      if (elbowL === null || elbowR === null) return false;
-      const avg = (elbowL + elbowR) / 2;
-      const active = avg < 110;
-      return cycleScored(state, active, avg, 110, 75);
+      // Best-visible arm only; the far arm is often occluded in side views.
+      const armVis = s => lm[s] && lm[s + 2] && lm[s + 4] ? Math.min(lm[s].visibility, lm[s + 2].visibility, lm[s + 4].visibility) : 0;
+      const s = armVis(11) >= armVis(12) ? 11 : 12;
+      const ank = vis(lm, 27) ? lm[27] : vis(lm, 28) ? lm[28] : null;
+      if (armVis(s) <= 0.45 || !ank) return false;
+      // Plank body: shoulder-to-ankle is not mostly vertical (standing is ~3.6 shoulder widths tall, a plank at most ~1.5 incl. front view).
+      const reach = Math.abs(lm[s].x - ank.x) + dist(lm[11], lm[12]);
+      if (Math.abs(ank.y - lm[s].y) > 2 * reach) { state.hMax = 0; return cycleScored(state, false, 0, 0, 1); }
+      // Shoulder height above the planted wrist: foreshortening-proof, unlike the projected elbow angle.
+      const h = lm[s + 4].y - lm[s].y;
+      state.hMax = Math.max(state.hMax || 0, h);
+      if (h <= 0) return false;
+      const ratio = h / state.hMax; // 1 at the top, lower as the chest drops
+      return cycleScored(state, ratio < 0.87, ratio, 0.87, 0.65);
     },
 
     lunges(lm, state, scale) {
@@ -347,7 +354,9 @@
     if (!this.poseFound) { this.poseFound = true; this.opts.onPoseFound && this.opts.onPoseFound(); }
 
     const lm = this._smooth(results.poseLandmarks);
-    const requiredVisible = visAll(lm, [11, 12, 23, 24], 0.4);
+    const requiredVisible = this.currentDetectorKey === 'push_ups'
+      ? (vis(lm, 11, 0.4) || vis(lm, 12, 0.4)) && (vis(lm, 23, 0.4) || vis(lm, 24, 0.4)) // far side is often hidden
+      : visAll(lm, [11, 12, 23, 24], 0.4);
     const confColor = requiredVisible ? 'rgba(34,197,94,0.55)' : 'rgba(239,68,68,0.5)';
 
     drawConnectors(ctx, lm, POSE_CONNECTIONS, { color: confColor, lineWidth: 2 });
