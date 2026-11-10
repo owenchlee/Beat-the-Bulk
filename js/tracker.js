@@ -51,10 +51,18 @@
 
   function Store() {
     /** @type {StoreState} */
-    this.state = Object.assign({}, DEFAULTS, this._loadJSON('btb_state', {}));
+    const raw = this._loadJSON('btb_state', {});
+    this.state = Object.assign({}, DEFAULTS, raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {});
+    // Keep only values matching DEFAULTS' type (finite for numbers), else default.
+    for (const k of Object.keys(DEFAULTS)) {
+      const d = DEFAULTS[k], v = this.state[k];
+      const ok = typeof d === 'number' ? Number.isFinite(v) : d === null ? (v === null || typeof v === 'string') : typeof v === typeof d;
+      if (!ok) this.state[k] = d;
+    }
     this._ensureCollections();
+    const h = this._loadJSON('btb_history', []);
     /** @type {DayRecord[]} */
-    this.history = this._loadJSON('btb_history', []);
+    this.history = Array.isArray(h) ? h.filter(r => r && typeof r === 'object') : [];
   }
   /**
    * @param {string} key
@@ -68,8 +76,10 @@
   // DEFAULTS stays primitive-only so Object.assign never aliases a shared
   // array/object across Store instances; collection fields are seeded here.
   Store.prototype._ensureCollections = function () {
-    if (!this.state.unlockedAchievements) this.state.unlockedAchievements = [];
-    if (!this.state.exercisesTried) this.state.exercisesTried = {};
+    const s = this.state;
+    if (!Array.isArray(s.unlockedAchievements)) s.unlockedAchievements = [];
+    const t = s.exercisesTried;
+    if (!t || typeof t !== 'object' || Array.isArray(t)) s.exercisesTried = {};
   };
   /** @param {string} id */
   Store.prototype.unlockAchievement = function (id) {
@@ -80,8 +90,11 @@
     this.state.exercisesTried[key] = true;
   };
   Store.prototype.save = function () {
-    localStorage.setItem('btb_state', JSON.stringify(this.state));
-    localStorage.setItem('btb_history', JSON.stringify(this.history));
+    // Storage may be full or disabled; keep the in-memory state and carry on.
+    try {
+      localStorage.setItem('btb_state', JSON.stringify(this.state));
+      localStorage.setItem('btb_history', JSON.stringify(this.history));
+    } catch (e) { /* ignore */ }
   };
   Store.prototype.reset = function () {
     this.state = Object.assign({}, DEFAULTS);
