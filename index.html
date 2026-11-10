@@ -90,7 +90,7 @@
             <div class="demo-area">
               <svg id="demoSvg" viewBox="0 0 90 110" xmlns="http://www.w3.org/2000/svg"></svg>
               <div class="demo-info">
-                <h3 id="exName">—</h3>
+                <h2 id="exName">—</h2>
                 <p id="exTip">Loading exercise…</p>
                 <div class="demo-tags" id="exTags"></div>
               </div>
@@ -220,7 +220,7 @@
 
 <!-- End-of-workout / meal modal -->
 <div class="modal-overlay hidden" id="modalOverlay">
-  <div class="modal" id="modalBox"></div>
+  <div class="modal" id="modalBox" role="dialog" aria-modal="true" aria-label="Workout complete"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>

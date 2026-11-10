@@ -249,6 +249,7 @@
 /* ---------- Chips / selectable choice cards ---------- */
 .choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--sp-3); }
 .choice-card {
+  color: var(--color-fg);
   background: var(--color-surface-2);
   border: 1.5px solid var(--color-border);
   border-radius: var(--r-md);
@@ -291,7 +292,7 @@
 }
 #demoSvg { width: 92px; height: 112px; flex-shrink: 0; }
 .demo-info { flex: 1; min-width: 160px; }
-.demo-info h3 { font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 700; color: var(--color-fg); margin-bottom: 3px; }
+.demo-info h2 { font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 700; color: var(--color-fg); margin-bottom: 3px; }
 .demo-info p { font-size: var(--fs-sm); color: var(--color-fg-muted); font-weight: 500; line-height: 1.5; }
 .demo-tags { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
 
