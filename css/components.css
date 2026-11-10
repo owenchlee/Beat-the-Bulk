@@ -126,7 +126,8 @@
   align-items: start;
 }
 @media (max-width: 760px) {
-  .grid { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .grid > * { min-width: 0; }
 }
 
 /* ---------- Card ---------- */
@@ -157,6 +158,9 @@
   text-align: center;
   position: sticky;
   top: var(--sp-4);
+}
+@media (max-width: 760px) {
+  .char-panel { position: static; }
 }
 
 .char-stage-name {
