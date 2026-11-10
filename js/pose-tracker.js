@@ -220,23 +220,11 @@
 
     arm_circles(lm, state, scale) {
       if (!visAll(lm, [11, 12, 15, 16])) return false;
-      const sh = midPt(lm[11], lm[12]), wr = midPt(lm[15], lm[16]);
-      const extended = dist(sh, wr) / scale > 0.30;
-      if (!extended) { state.lastAngle = null; return false; }
-      const ang = Math.atan2(wr.y - sh.y, wr.x - sh.x) * 180 / Math.PI;
-      if (state.lastAngle === null || state.lastAngle === undefined) { state.lastAngle = ang; state.rotAcc = 0; return false; }
-      let delta = normAngleDelta(ang - state.lastAngle);
-      state.lastAngle = ang;
-      if (Math.abs(delta) > 45) return false; // reject spikes
-      state.rotAcc = (state.rotAcc || 0) + delta;
-      if (Math.abs(state.rotAcc) >= 330) {
-        // Overshoot past 330 toward a fuller rotation reads as a rounder,
-        // more complete circle rather than a rep that just barely counted.
-        const formScore = scoreFromT(normT(Math.abs(state.rotAcc), 330, 370));
-        state.rotAcc = 0;
-        return { done: true, formScore };
-      }
-      return false;
+      // View-independent: arms held out to the sides, wrists bob above the shoulder line once per circle.
+      const reach = Math.min(Math.abs(lm[15].x - lm[11].x), Math.abs(lm[16].x - lm[12].x)) / scale;
+      const rise = ((lm[11].y - lm[15].y) + (lm[12].y - lm[16].y)) / 2 / scale;
+      const active = reach > 0.45 && rise > 0.10;
+      return cycleScored(state, active, rise, 0.10, 0.25);
     },
 
     push_ups(lm, state, scale) {
