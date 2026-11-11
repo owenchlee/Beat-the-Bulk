@@ -245,13 +245,21 @@
 
   function buildQueueUI() {
     const list = $('queueList');
-    list.innerHTML = '';
+    // Update rows in place when the exercise list is unchanged (only the class and check icon differ).
+    const sid = session.exercises.map(e => e.key).join();
+    if (list.dataset.sid !== sid) { list.innerHTML = ''; list.dataset.sid = sid; }
     session.exercises.forEach((ex, i) => {
-      const cls = i < session.idx ? 'done' : i === session.idx ? 'active' : 'pending';
-      const row = document.createElement('div');
-      row.className = 'q-item ' + cls;
-      row.innerHTML = `<div class="q-check">${i < session.idx ? BTB.icon('check', 12) : ''}</div>${ex.name}<span class="q-meta">${ex.reps} reps</span>`;
-      list.appendChild(row);
+      const cls = 'q-item ' + (i < session.idx ? 'done' : i === session.idx ? 'active' : 'pending');
+      let row = /** @type {HTMLElement} */ (list.children[i]);
+      if (!row) {
+        row = document.createElement('div');
+        row.innerHTML = `<div class="q-check"></div>${ex.name}<span class="q-meta">${ex.reps} reps</span>`;
+        list.appendChild(row);
+      }
+      if (row.className !== cls) row.className = cls;
+      const check = /** @type {HTMLElement} */ (row.firstElementChild);
+      const want = i < session.idx ? BTB.icon('check', 12) : '';
+      if (check.dataset.h !== want) { check.innerHTML = want; check.dataset.h = want; }
     });
   }
 
