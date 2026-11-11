@@ -92,7 +92,8 @@
     lastBubbleType = type;
     const opts = MSGS[type] || MSGS.start;
     const line = opts[Math.floor(Math.random() * opts.length)];
-    if ($('bubble').textContent !== line) $('bubble').textContent = line;
+    const b = $('bubble'), bt = /** @type {Text|null} */ (b.firstChild); // edit the text node in place: 1 mutation instead of remove+add
+    if (b.textContent !== line) { if (bt && bt.nodeType === 3 && b.childNodes.length === 1) bt.data = line; else b.textContent = line; }
     if (speakToo) voice.speak(line);
   }
 
