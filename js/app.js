@@ -119,8 +119,14 @@
   }
   function buildMilestonesUI() {
     const el = $('milestones');
+    const ms = milestoneThresholds();
+    // Update dots in place when the labels are unchanged; rebuild only on a layout change.
+    if (el.children.length === ms.length && ms.every((m, i) => el.children[i].children[1].textContent === String(Math.round(m)))) {
+      ms.forEach((m, i) => el.children[i].children[0].classList.toggle('reached', store.state.weight <= m + 0.05));
+      return;
+    }
     el.innerHTML = '';
-    milestoneThresholds().forEach((m, i) => {
+    ms.forEach((m, i) => {
       const reached = store.state.weight <= m + 0.05;
       const d = document.createElement('div');
       d.className = 'mstone';
@@ -153,14 +159,17 @@
   function refreshCharacterUI(moodOverride) {
     const t = fitnessT();
     character.update({ t });
-    $('weightNow').textContent = String(Math.round(store.state.weight));
-    $('weightGoalSub').textContent = store.state.goalWeight + ' lbs';
-    $('goalChipVal').textContent = store.state.goalWeight + ' lbs';
-    $('progFill').style.width = Math.round(t * 100) + '%';
-    $('progLabel').textContent = `Journey: ${Math.round(t * 100)}% complete`;
-    $('charStageName').textContent = stageName(t);
-    $('charNameDisplay').textContent = store.state.name;
-    $('streakChip').innerHTML = BTB.icon('flame', 15) + `<span>Day ${store.state.streak} streak</span>`;
+    const setText = (id, v) => { const e = $(id); if (e.textContent !== v) e.textContent = v; };
+    setText('weightNow', String(Math.round(store.state.weight)));
+    setText('weightGoalSub', store.state.goalWeight + ' lbs');
+    setText('goalChipVal', store.state.goalWeight + ' lbs');
+    const pct = Math.round(t * 100) + '%';
+    if ($('progFill').style.width !== pct) $('progFill').style.width = pct;
+    setText('progLabel', `Journey: ${Math.round(t * 100)}% complete`);
+    setText('charStageName', stageName(t));
+    setText('charNameDisplay', store.state.name);
+    const chip = $('streakChip'), chipHtml = BTB.icon('flame', 15) + `<span>Day ${store.state.streak} streak</span>`;
+    if (chip.dataset.html !== chipHtml) { chip.innerHTML = chipHtml; chip.dataset.html = chipHtml; }
     buildMilestonesUI();
     if (moodOverride) character.update({ mood: moodOverride });
   }
