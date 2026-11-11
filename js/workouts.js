@@ -3,7 +3,7 @@
    Calorie burn uses real MET (Metabolic Equivalent of Task)
    coefficients: kcal/min = MET * 3.5 * bodyWeightKg / 200.
    Weight change (loss from exercise, gain from food) both use
-   the same real-world constant: 3500 kcal ≈ 1 lb of bodyweight.
+   the same real-world constant: 3500 kcal ≈ 1 lb. Exception: weight lost per rep is multiplied by BURN_GAME_SCALE so a workout can outweigh dinner.
    ============================================================ */
 
 /**
@@ -201,6 +201,8 @@
 
   /** @param {number} kcal @returns {number} */
   function kcalToLbs(kcal) { return kcal / 3500; }
+  /** Game-scale factor: a rep's real burn is tiny, so weight loss per rep is exaggerated this many times (displayed kcal stay honest). */
+  const BURN_GAME_SCALE = 300;
   /** @param {number} lbs @returns {number} */
   function lbsToKcal(lbs) { return lbs * 3500; }
 
@@ -327,5 +329,6 @@
   global.BTB.buildWorkout = buildWorkout;
   global.BTB.estimateCalories = estimateCalories;
   global.BTB.kcalToLbs = kcalToLbs;
+  global.BTB.BURN_GAME_SCALE = BURN_GAME_SCALE;
   global.BTB.lbsToKcal = lbsToKcal;
 })(window);
