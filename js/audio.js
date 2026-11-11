@@ -256,13 +256,14 @@
     this.step = 0;
     this.nextStepTime = this.ctx.currentTime + 0.05;
     const self = this;
-    const lookahead = 25, scheduleAhead = 0.12;
+    const lookahead = 25, scheduleAhead = 0.3;
     this.musicTimer = setInterval(() => {
       if (!self.musicPlaying) return;
       const stepDur = 60 / self.bpm / 4;
       while (self.nextStepTime < self.ctx.currentTime + scheduleAhead) {
         if (self.step > 0 && self.step % 64 === 0) self.pattern = self.pattern === 'A' ? 'B' : 'A';
-        self._scheduleStep(self.step % 16, self.nextStepTime);
+        // Skip steps already in the past (main-thread stall / frozen timer) to stay on the grid without a clump.
+        if (self.nextStepTime >= self.ctx.currentTime) self._scheduleStep(self.step % 16, self.nextStepTime);
         self.nextStepTime += stepDur;
         self.step++;
       }
