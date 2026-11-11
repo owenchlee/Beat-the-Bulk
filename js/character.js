@@ -188,9 +188,17 @@
   };
 
   Character.prototype._setOutfitColors = function (t) {
-    document.getElementById('outfitStop1').setAttribute('stop-color', lerpColor(OUTFIT_HEAVY, '#2fbf6b', t));
-    document.getElementById('outfitStop2').setAttribute('stop-color', lerpColor('#4b5563', OUTFIT_FIT, t));
+    setAttr(document.getElementById('outfitStop1'), 'stop-color', lerpColor(OUTFIT_HEAVY, '#2fbf6b', t));
+    setAttr(document.getElementById('outfitStop2'), 'stop-color', lerpColor('#4b5563', OUTFIT_FIT, t));
   };
+
+  function setAttr(e, k, v) { v = String(v); if (e.getAttribute(k) !== v) e.setAttribute(k, v); }
+  // Reuse existing nodes when the shape is the same; write only attributes that changed.
+  function patchGroup(g, frag) {
+    const nk = Array.from(frag.childNodes), old = g.children;
+    if (old.length !== nk.length || nk.some((n, i) => old[i].tagName !== n.tagName)) { g.replaceChildren(...nk); return; }
+    nk.forEach((n, i) => { for (const a of n.attributes) if (old[i].getAttribute(a.name) !== a.value) old[i].setAttribute(a.name, a.value); });
+  }
 
   Character.prototype.update = function (opts) {
     opts = opts || {};
@@ -214,7 +222,7 @@
     const cx = 100, shoulderY = 96 + bob, hipY = 150 + bob;
     const lean = P.lean;
 
-    this.body.setAttribute('transform', `rotate(${lean} 100 150)`);
+    setAttr(this.body, 'transform', `rotate(${lean} 100 150)`);
 
     // Shoulders / hips anchor points
     const shL = { x: cx - shoulderGap / 2, y: shoulderY };
@@ -228,13 +236,15 @@
     const elR = polar(shR.x, shR.y, P.shR, armLen1);
     const wrR = polar(elR.x, elR.y, P.shR + P.elR, armLen2);
 
-    this.groups.armL.innerHTML = '';
-    this.groups.armL.appendChild(limb('url(#gradSkin)', shL.x, shL.y, armR1, elL.x, elL.y, armR2));
-    this.groups.armL.appendChild(limb('url(#gradSkin)', elL.x, elL.y, armR2, wrL.x, wrL.y, armR2 * 0.8));
+    const f_armL = document.createDocumentFragment();
+    f_armL.appendChild(limb('url(#gradSkin)', shL.x, shL.y, armR1, elL.x, elL.y, armR2));
+    f_armL.appendChild(limb('url(#gradSkin)', elL.x, elL.y, armR2, wrL.x, wrL.y, armR2 * 0.8));
 
-    this.groups.armR.innerHTML = '';
-    this.groups.armR.appendChild(limb('url(#gradSkin)', shR.x, shR.y, armR1, elR.x, elR.y, armR2));
-    this.groups.armR.appendChild(limb('url(#gradSkin)', elR.x, elR.y, armR2, wrR.x, wrR.y, armR2 * 0.8));
+    const f_armR = document.createDocumentFragment();
+    f_armR.appendChild(limb('url(#gradSkin)', shR.x, shR.y, armR1, elR.x, elR.y, armR2));
+    f_armR.appendChild(limb('url(#gradSkin)', elR.x, elR.y, armR2, wrR.x, wrR.y, armR2 * 0.8));
+
+    patchGroup(this.groups.armL, f_armL); patchGroup(this.groups.armR, f_armR);
 
     // ---- Legs ----
     const knL = polar(hipL.x, hipL.y, P.hipL, legLen1);
@@ -254,46 +264,52 @@
       g.appendChild(el('ellipse', { cx: toe.x, cy: toe.y + 2, rx: r2 * 0.62, ry: 4, fill: shoeStripe }));
       return g;
     }
-    this.groups.legL.innerHTML = '';
-    this.groups.legL.appendChild(buildLeg(hipL, knL, anL, legR1, legR2));
-    this.groups.legR.innerHTML = '';
-    this.groups.legR.appendChild(buildLeg(hipR, knR, anR, legR1, legR2));
+    const f_legL = document.createDocumentFragment();
+    f_legL.appendChild(buildLeg(hipL, knL, anL, legR1, legR2));
+    const f_legR = document.createDocumentFragment();
+    f_legR.appendChild(buildLeg(hipR, knR, anR, legR1, legR2));
+
+    patchGroup(this.groups.legL, f_legL); patchGroup(this.groups.legR, f_legR);
 
     // ---- Torso / outfit ----
-    this.groups.torso.innerHTML = '';
-    this.groups.torso.appendChild(el('ellipse', { cx, cy: (shoulderY + hipY) / 2 + 4, rx: shoulderGap / 2 + 8, ry: torsoRy, fill: 'url(#gradOutfit)' }));
+    const f_torso = document.createDocumentFragment();
+    f_torso.appendChild(el('ellipse', { cx, cy: (shoulderY + hipY) / 2 + 4, rx: shoulderGap / 2 + 8, ry: torsoRy, fill: 'url(#gradOutfit)' }));
     // chest highlight
-    this.groups.torso.appendChild(el('ellipse', { cx: cx - 12, cy: (shoulderY + hipY) / 2 - 10, rx: 14, ry: torsoRy * 0.4, fill: 'white', opacity: 0.06 }));
+    f_torso.appendChild(el('ellipse', { cx: cx - 12, cy: (shoulderY + hipY) / 2 - 10, rx: 14, ry: torsoRy * 0.4, fill: 'white', opacity: 0.06 }));
     // collar
-    this.groups.torso.appendChild(el('path', { d: `M${cx - 16} ${shoulderY - 4} Q${cx} ${shoulderY + 10} ${cx + 16} ${shoulderY - 4}`, stroke: 'rgba(0,0,0,0.18)', 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round' }));
+    f_torso.appendChild(el('path', { d: `M${cx - 16} ${shoulderY - 4} Q${cx} ${shoulderY + 10} ${cx + 16} ${shoulderY - 4}`, stroke: 'rgba(0,0,0,0.18)', 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round' }));
 
     // Outfit detail: fades hoodie pocket+drawstring out, abs/racer-stripe in
-    this.groups.outfitDetail.innerHTML = '';
+    const f_outfitDetail = document.createDocumentFragment();
     const hoodieOpacity = 1 - t;
     const fitOpacity = Math.max(0, t - 0.45) / 0.55;
     const pocket = el('path', { d: `M${cx - 20} ${hipY - 14} Q${cx} ${hipY - 2} ${cx + 20} ${hipY - 14} L${cx + 16} ${hipY - 4} Q${cx} ${hipY + 4} ${cx - 16} ${hipY - 4} Z`, fill: 'rgba(0,0,0,0.14)', opacity: hoodieOpacity });
-    this.groups.outfitDetail.appendChild(pocket);
+    f_outfitDetail.appendChild(pocket);
     const stripe = el('path', { d: `M${cx - 26} ${shoulderY + 6} L${cx - 10} ${hipY - 6}`, stroke: '#f97316', 'stroke-width': 4, 'stroke-linecap': 'round', opacity: fitOpacity });
-    this.groups.outfitDetail.appendChild(stripe);
+    f_outfitDetail.appendChild(stripe);
     const absTop = (shoulderY + hipY) / 2 + 2;
     [0, 1].forEach(i => {
-      this.groups.outfitDetail.appendChild(el('path', {
+      f_outfitDetail.appendChild(el('path', {
         d: `M${cx - 6} ${absTop + i * 10} Q${cx} ${absTop + i * 10 + 3} ${cx + 6} ${absTop + i * 10}`,
         stroke: 'rgba(0,0,0,0.25)', 'stroke-width': 1.6, fill: 'none', opacity: fitOpacity * 0.7
       }));
     });
 
+    patchGroup(this.groups.torso, f_torso); patchGroup(this.groups.outfitDetail, f_outfitDetail);
+
     // ---- Neck ----
-    this.groups.neck.innerHTML = '';
-    this.groups.neck.appendChild(limb('url(#gradSkin)', cx, shoulderY - 2, 13, cx, shoulderY - 10, 11));
+    const f_neck = document.createDocumentFragment();
+    f_neck.appendChild(limb('url(#gradSkin)', cx, shoulderY - 2, 13, cx, shoulderY - 10, 11));
+
+    patchGroup(this.groups.neck, f_neck);
 
     // ---- Head position (bob + lean already applied via group transform) ----
-    this.groups.head.setAttribute('transform', `translate(0 ${bob * 0.3})`);
+    setAttr(this.groups.head, 'transform', `translate(0 ${bob * 0.3})`);
 
     // ---- Aura ----
-    document.getElementById('auraGlow').setAttribute('opacity', (0.08 + t * 0.22).toFixed(2));
-    document.getElementById('auraGlow').setAttribute('rx', String(70 + t * 14));
-    document.getElementById('auraGlow').setAttribute('ry', String(88 + t * 10));
+    setAttr(document.getElementById('auraGlow'), 'opacity', (0.08 + t * 0.22).toFixed(2));
+    setAttr(document.getElementById('auraGlow'), 'rx', String(70 + t * 14));
+    setAttr(document.getElementById('auraGlow'), 'ry', String(88 + t * 10));
 
     this._applyMood();
   };
@@ -312,9 +328,9 @@
       case 'working': curve = 80; browTilt = 3; break;
       default: curve = 78 - baseSmile; browTilt = -baseSmile * 0.3;
     }
-    mouth.setAttribute('d', `M86 76 Q100 ${curve} 114 76`);
-    browL.setAttribute('transform', `rotate(${browTilt} 86 45)`);
-    browR.setAttribute('transform', `rotate(${-browTilt} 114 45)`);
+    setAttr(mouth, 'd', `M86 76 Q100 ${curve} 114 76`);
+    setAttr(browL, 'transform', `rotate(${browTilt} 86 45)`);
+    setAttr(browR, 'transform', `rotate(${-browTilt} 114 45)`);
   };
 
   Character.prototype.showSweat = function (on) {
