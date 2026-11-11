@@ -92,7 +92,7 @@
     lastBubbleType = type;
     const opts = MSGS[type] || MSGS.start;
     const line = opts[Math.floor(Math.random() * opts.length)];
-    $('bubble').textContent = line;
+    if ($('bubble').textContent !== line) $('bubble').textContent = line;
     if (speakToo) voice.speak(line);
   }
 

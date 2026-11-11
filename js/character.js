@@ -335,7 +335,8 @@
 
   Character.prototype.showSweat = function (on) {
     const s = document.getElementById('partSweat');
-    if (s) s.setAttribute('opacity', on ? '1' : '0');
+    const v = on ? '1' : '0';
+    if (s && s.getAttribute('opacity') !== v) s.setAttribute('opacity', v);
   };
   Character.prototype.showSparkle = function (on) {
     const s = document.getElementById('partSparkle');
