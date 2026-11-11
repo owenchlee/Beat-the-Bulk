@@ -674,7 +674,8 @@
 
     $('goalWeightInput').addEventListener('change', e => {
       let v = parseFloat(e.target.value);
-      if (isNaN(v) || v < 90) v = 90;
+      if (isNaN(v)) v = store.state.goalWeight; // empty input keeps the previous value
+      v = Math.min(400, Math.max(90, v));
       if (v > store.state.weight - 5) v = Math.max(90, store.state.weight - 5);
       store.state.goalWeight = v;
       e.target.value = String(v);
@@ -684,7 +685,8 @@
     });
     $('currentWeightInput').addEventListener('change', e => {
       let v = parseFloat(e.target.value);
-      if (isNaN(v) || v < 90) v = 90;
+      if (isNaN(v)) v = store.state.weight; // empty input keeps the previous value
+      v = Math.min(500, Math.max(90, v));
       store.state.weight = v;
       if (v > store.state.startWeight) store.state.startWeight = v;
       e.target.value = String(v);
