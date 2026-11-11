@@ -150,6 +150,15 @@
     setBubble('milestone', true);
   }
 
+  // Streak shown to the user: 0 once a day was missed (stored value is kept until the next workout).
+  function liveStreak() {
+    const last = store.state.lastPlayDate;
+    if (!last) return store.state.streak;
+    const d = new Date(); const today = d.toDateString();
+    d.setDate(d.getDate() - 1);
+    return last === today || last === d.toDateString() ? store.state.streak : 0;
+  }
+
   function refreshCharacterUI(moodOverride) {
     const t = fitnessT();
     character.update({ t });
@@ -160,7 +169,7 @@
     $('progLabel').textContent = `Journey: ${Math.round(t * 100)}% complete`;
     $('charStageName').textContent = stageName(t);
     $('charNameDisplay').textContent = store.state.name;
-    $('streakChip').innerHTML = BTB.icon('flame', 15) + `<span>Day ${store.state.streak} streak</span>`;
+    $('streakChip').innerHTML = BTB.icon('flame', 15) + `<span>Day ${liveStreak()} streak</span>`;
     buildMilestonesUI();
     if (moodOverride) character.update({ mood: moodOverride });
   }
@@ -319,10 +328,13 @@
     session.caloriesBurned = (session.caloriesBurned || 0) + kcal;
     store.state.weight = Math.max(store.state.goalWeight, store.state.weight - lbs);
 
-    // Demo-mode reps (no camera) have no measured form — treat as a clean rep.
-    const score = typeof formScore === 'number' ? formScore : 100;
-    session.formScoreSum = (session.formScoreSum || 0) + score;
-    session.formScoreCount = (session.formScoreCount || 0) + 1;
+    // Demo-mode reps (no camera) have no measured form: skip them in the average.
+    const measured = typeof formScore === 'number';
+    const score = measured ? formScore : 100;
+    if (measured) {
+      session.formScoreSum = (session.formScoreSum || 0) + score;
+      session.formScoreCount = (session.formScoreCount || 0) + 1;
+    }
 
     $('repNum').textContent = session.reps;
     const flashColor = score >= 80 ? 'var(--color-accent)' : score >= 55 ? 'var(--color-warning)' : 'var(--color-destructive)';
@@ -572,7 +584,7 @@
       <div class="stat-box"><div class="stat-val">${s.toGo.toFixed(1)}</div><div class="stat-lbl">lbs to go</div></div>
       <div class="stat-box"><div class="stat-val">${s.totalWorkouts}</div><div class="stat-lbl">workouts</div></div>
       <div class="stat-box"><div class="stat-val">${s.totalReps}</div><div class="stat-lbl">total reps</div></div>
-      <div class="stat-box"><div class="stat-val">${s.streak}</div><div class="stat-lbl">day streak</div></div>
+      <div class="stat-box"><div class="stat-val">${liveStreak()}</div><div class="stat-lbl">day streak</div></div>
       <div class="stat-box"><div class="stat-val">${s.caloriesBurned}</div><div class="stat-lbl">kcal burned</div></div>
     `;
     const list = $('historyList');
