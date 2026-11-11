@@ -335,10 +335,13 @@
     session.formScoreSum = (session.formScoreSum || 0) + score;
     session.formScoreCount = (session.formScoreCount || 0) + 1;
 
-    $('repNum').textContent = session.reps;
+    const repNum = $('repNum');
+    // Edit the text node in place (1 mutation, not remove+add) and restart the flash via the animation API (no class churn).
+    const tn = /** @type {Text|null} */ (repNum.firstChild); if (tn) tn.data = String(session.reps); else repNum.textContent = String(session.reps);
     const flashColor = score >= 80 ? 'var(--color-accent)' : score >= 55 ? 'var(--color-warning)' : 'var(--color-destructive)';
-    $('repNum').style.setProperty('--flash-color', flashColor);
-    $('repNum').classList.remove('rep-flash'); void $('repNum').offsetWidth; $('repNum').classList.add('rep-flash');
+    if (repNum.style.getPropertyValue('--flash-color') !== flashColor) repNum.style.setProperty('--flash-color', flashColor);
+    if (repNum.classList.contains('rep-flash')) repNum.getAnimations().forEach(a => { a.cancel(); a.play(); });
+    else repNum.classList.add('rep-flash');
     $('repBar').style.width = Math.min(100, (session.reps / ex.reps) * 100) + '%';
 
     refreshCharacterUI();

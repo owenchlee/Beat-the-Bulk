@@ -351,7 +351,8 @@
     setTimeout(() => { g.style.transform = 'scaleY(1)'; }, 110);
   };
   Character.prototype.bounce = function () {
-    this.mount.classList.remove('char-bounce'); void this.mount.offsetWidth;
+    // Restart via the animation API when the class is already set (no class mutations).
+    if (this.mount.classList.contains('char-bounce')) { this.mount.getAnimations().forEach(a => { a.cancel(); a.play(); }); return; }
     this.mount.classList.add('char-bounce');
   };
   Character.prototype.wiggle = function () {
