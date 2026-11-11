@@ -158,7 +158,9 @@
 
   function refreshCharacterUI(moodOverride) {
     const t = fitnessT();
-    character.update({ t });
+    // Quantise to 0.2% of the journey (sub-pixel change) so most reps skip the SVG rebuild.
+    const qt = Math.round(t * 500) / 500;
+    if (qt !== character.t) character.update({ t: qt });
     const setText = (id, v) => { const e = $(id); if (e.textContent !== v) e.textContent = v; };
     setText('weightNow', String(Math.round(store.state.weight)));
     setText('weightGoalSub', store.state.goalWeight + ' lbs');
