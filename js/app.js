@@ -381,6 +381,7 @@
     audio.play('workoutComplete');
     store.state.totalWorkouts++;
     store.state.totalCaloriesBurned += (session.caloriesBurned || 0);
+    updateStreak();
     checkAchievements();
     store.save();
     character.update({ pose: 'celebrate', mood: 'happy' });
@@ -518,15 +519,21 @@
     }, 'image/png');
   }
 
+  // Idempotent per calendar day; yesterday is a calendar step so DST days are not 23/25h off.
+  function updateStreak() {
+    const now = new Date();
+    const todayStr = now.toDateString();
+    if (store.state.lastPlayDate === todayStr) return todayStr;
+    now.setDate(now.getDate() - 1);
+    if (store.state.lastPlayDate === now.toDateString()) store.state.streak++;
+    else store.state.streak = 1;
+    store.state.bestStreak = Math.max(store.state.bestStreak, store.state.streak);
+    store.state.lastPlayDate = todayStr;
+    return todayStr;
+  }
+
   function finishDay() {
-    const todayStr = new Date().toDateString();
-    const yesterdayStr = new Date(Date.now() - 86400000).toDateString();
-    if (store.state.lastPlayDate !== todayStr) {
-      if (store.state.lastPlayDate === yesterdayStr) store.state.streak++;
-      else store.state.streak = 1;
-      store.state.bestStreak = Math.max(store.state.bestStreak, store.state.streak);
-      store.state.lastPlayDate = todayStr;
-    }
+    const todayStr = updateStreak();
     store.state.day++;
     store.recordDay({
       day: store.state.day - 1,
