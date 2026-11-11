@@ -290,7 +290,7 @@
     runCountdown(3, 'GET READY', 'GO!', () => {
       session.phase = 'active';
       ensureTracker().setEnabled(true);
-      if (!session.usingCamera) startDemoFallback(ex);
+      if (!session.usingCamera && !session.camPending) startDemoFallback(ex);
       character.update({ pose: 'active', mood: 'working' });
       character.setFloat(false);
       setBubble('working');
@@ -398,7 +398,7 @@
   $('beginWorkoutBtn').addEventListener('click', () => {
     audio.unlock();
     session = Object.assign(BTB.buildWorkout(selectedGoal, selectedIntensity, store.state.day), {
-      idx: 0, reps: 0, phase: 'idle', caloriesBurned: 0, repsTotal: 0, usingCamera: false
+      idx: 0, reps: 0, phase: 'idle', caloriesBurned: 0, repsTotal: 0, usingCamera: false, camPending: true
     });
     $('setupCard').classList.add('hidden');
     $('sessionCard').classList.remove('hidden');
@@ -412,14 +412,18 @@
       if (camSettled) return;
       camSettled = true;
       session.usingCamera = false;
+      session.camPending = false;
       $('camStatusText').textContent = 'NO CAMERA — DEMO MODE';
       $('camStatus').style.color = '#fbbf24';
       toast('No camera detected — running demo mode');
+      if (session.phase === 'active') startDemoFallback(session.exercises[session.idx]);
     };
     t.start().then(() => {
-      if (camSettled) return; // timeout already claimed demo mode; camera can still light up onPoseFound
+      // a late grant (after demo mode began) still switches to the real camera
       camSettled = true;
       session.usingCamera = true;
+      session.camPending = false;
+      stopDemoFallback();
       $('camStatusText').textContent = 'LOADING MODEL…';
     }).catch(fallbackToDemo);
     setTimeout(fallbackToDemo, 4500); // permission prompt ignored/blocked — don't stall the game
