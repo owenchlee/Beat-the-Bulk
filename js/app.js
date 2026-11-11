@@ -375,6 +375,7 @@
   function finishWorkoutSession() {
     session.phase = 'done';
     ensureTracker().setEnabled(false);
+    tracker.stop();
     stopDemoFallback();
     clearInterval(demoAnimTimer);
     audio.stopMusic();
@@ -709,6 +710,7 @@
       selectedGoal = store.state.goal;
       selectedIntensity = store.state.intensity;
       session = null;
+      if (tracker) { tracker.setEnabled(false); tracker.stop(); }
       $('sessionCard').classList.add('hidden');
       $('setupCard').classList.remove('hidden');
       label('resetBtn', 'x', 'Reset All Progress');
