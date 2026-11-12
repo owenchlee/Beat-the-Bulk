@@ -175,6 +175,7 @@
             state.formT = 0;
             return { done: true, formScore };
           }
+          state.formT = 0; // same-side rep rejected: do not carry its depth into the next counted rep
         }
       }
       return false;
@@ -204,6 +205,7 @@
             state.formT = 0;
             return { done: true, formScore };
           }
+          state.formT = 0; // same-side rep rejected: do not carry its depth into the next counted rep
         }
       }
       return false;
@@ -220,11 +222,11 @@
       state.lastAngle = ang;
       if (Math.abs(delta) > 45) return false; // reject spikes
       state.rotAcc = (state.rotAcc || 0) + delta;
+      // Reach (wrist distance from shoulders) is frame-rate independent, unlike the rotation overshoot.
+      state.formT = Math.max(state.formT || 0, normT(dist(sh, wr) / scale, 0.30, 0.70));
       if (Math.abs(state.rotAcc) >= 330) {
-        // Overshoot past 330 toward a fuller rotation reads as a rounder,
-        // more complete circle rather than a rep that just barely counted.
-        const formScore = scoreFromT(normT(Math.abs(state.rotAcc), 330, 370));
-        state.rotAcc = 0;
+        const formScore = scoreFromT(state.formT || 0);
+        state.rotAcc = 0; state.formT = 0;
         return { done: true, formScore };
       }
       return false;
