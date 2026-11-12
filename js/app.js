@@ -180,6 +180,16 @@
   }
   TABS.forEach(t => $('tabBtn-' + t).addEventListener('click', () => switchTab(t)));
 
+  // Another tab saved: pick up its data and redraw (the running workout session is untouched).
+  window.addEventListener('storage', e => {
+    if (e.key !== 'btb_state' && e.key !== 'btb_history' && e.key !== null) return;
+    store.refresh();
+    refreshCharacterUI();
+    if (!session) { selectedGoal = store.state.goal; selectedIntensity = store.state.intensity; renderSetup(); }
+    if (!$('panelProgress').classList.contains('hidden')) renderProgressTab();
+    if (!$('panelCharacter').classList.contains('hidden')) renderCharacterTab();
+  });
+
   // ---------------------------------------------------------------
   // Setup screen (goal + intensity pickers)
   // ---------------------------------------------------------------
