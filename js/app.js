@@ -93,7 +93,7 @@
     const opts = MSGS[type] || MSGS.start;
     const line = opts[Math.floor(Math.random() * opts.length)];
     $('bubble').textContent = line;
-    if (speakToo) voice.speak(line);
+    if (speakToo) voice.speak(line, speakToo === 'queue' ? { priority: 'queue' } : undefined);
   }
 
   // ---------------------------------------------------------------
@@ -353,7 +353,7 @@
     stopDemoFallback();
     clearInterval(demoAnimTimer);
     audio.play('setComplete');
-    setBubble('setDone', true);
+    setBubble('setDone', session.idx + 1 < session.exercises.length); // last set: the finish line speaks instead
     buildQueueUI();
     session.exercises[session.idx].completed = true;
     store.markExerciseTried(session.exercises[session.idx].key);
@@ -390,7 +390,7 @@
     character.showSparkle(true);
     character.wiggle();
     launchConfetti();
-    setBubble('workoutDone', true);
+    setBubble('workoutDone', 'queue');
     setTimeout(showEndOfDayModal, 1500);
   }
 

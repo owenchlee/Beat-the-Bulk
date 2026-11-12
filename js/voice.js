@@ -29,7 +29,7 @@
    * currently queued; normal-priority lines are dropped if speech is
    * already in progress, so rep callouts never pile up into a backlog.
    * @param {string} text
-   * @param {{priority?: 'normal'|'high'}} [opts]
+   * @param {{priority?: 'normal'|'high'|'queue'}} [opts]
    */
   VoiceEngine.prototype.speak = function (text, opts) {
     if (!this.supported || !this.enabled || !text) return;
@@ -39,7 +39,7 @@
     const synth = window.speechSynthesis;
     if (priority === 'high') {
       synth.cancel();
-    } else if (synth.speaking) {
+    } else if (synth.speaking && priority !== 'queue') {
       return;
     }
     const utter = new SpeechSynthesisUtterance(text);
