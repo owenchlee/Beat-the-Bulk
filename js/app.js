@@ -556,6 +556,14 @@
   // ---------------------------------------------------------------
   // Progress tab
   // ---------------------------------------------------------------
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const c = $('weightChart');
+      if (c && c.offsetParent) renderProgressTab();
+    }, 150);
+  });
   function renderProgressTab() {
     BTB.drawWeightChart($('weightChart'), store);
     BTB.drawWeeklyChart($('weeklyChart'), store);

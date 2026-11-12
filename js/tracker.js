@@ -124,9 +124,11 @@
     ctx.clearRect(0, 0, W, H);
 
     const s = store.state;
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', 'Weight journey: ' + s.weight + ' lbs now, goal ' + s.goalWeight + ' lbs, started at ' + s.startWeight);
     const data = [{ day: 0, weight: s.startWeight }].concat(store.history.map(h => ({ day: h.day, weight: h.weight })));
     if (data.length < 2) {
-      ctx.fillStyle = '#6b7386'; ctx.font = '13px Barlow, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#9aa4b8'; ctx.font = '13px Barlow, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('Complete a workout to start your chart', W / 2, H / 2);
       return;
     }
@@ -178,8 +180,12 @@
     ctx.clearRect(0, 0, W, H);
 
     const last7 = store.history.slice(-7);
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', last7.length
+      ? 'Reps per day: ' + last7.map(d => 'day ' + d.day + ' ' + d.repsTotal + ' reps').join(', ')
+      : 'No workouts logged yet');
     if (!last7.length) {
-      ctx.fillStyle = '#6b7386'; ctx.font = '12px Barlow, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#9aa4b8'; ctx.font = '12px Barlow, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('No workouts logged yet', W / 2, H / 2);
       return;
     }
@@ -195,7 +201,7 @@
       ctx.fillStyle = grad;
       const w = bw * 0.64;
       roundRect(ctx, x, y, w, h, 4); ctx.fill();
-      ctx.fillStyle = '#6b7386'; ctx.font = '10px Barlow, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#9aa4b8'; ctx.font = '10px Barlow, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('D' + d.day, x + w / 2, H - 6);
     });
   }

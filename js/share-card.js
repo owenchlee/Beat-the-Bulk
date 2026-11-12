@@ -9,7 +9,7 @@
   const COLORS = {
     bg: '#0d1016', bgAlt: '#12161f', surface: '#1a1f2b',
     primary: '#f97316', accent: '#22c55e', warning: '#fbbf24', destructive: '#ef4444',
-    fg: '#f7f8fa', fgMuted: '#9aa4b8', fgFaint: '#6b7386', border: 'rgba(255,255,255,0.10)'
+    fg: '#f7f8fa', fgMuted: '#9aa4b8', fgFaint: '#9aa4b8', border: 'rgba(255,255,255,0.10)'
   };
 
   /** @param {CanvasRenderingContext2D} ctx */
