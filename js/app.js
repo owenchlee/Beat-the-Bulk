@@ -278,7 +278,8 @@
     }, 1000);
   }
 
-  function beginExercise(idx) {
+  // afterRest: the rest countdown already counted 3-2-1-GO, so skip a second one.
+  function beginExercise(idx, afterRest) {
     session.idx = idx;
     session.reps = 0;
     session.phase = 'countdown';
@@ -287,14 +288,15 @@
     buildQueueUI();
     ensureTracker().setExercise(ex.key);
     character.update({ pose: 'idle', mood: 'normal' });
-    runCountdown(3, 'GET READY', 'GO!', () => {
+    const go = () => {
       session.phase = 'active';
       ensureTracker().setEnabled(true);
       if (!session.usingCamera) startDemoFallback(ex);
       character.update({ pose: 'active', mood: 'working' });
       character.setFloat(false);
       setBubble('working');
-    });
+    };
+    if (afterRest) go(); else runCountdown(3, 'GET READY', 'GO!', go);
   }
 
   function startDemoFallback(ex) {
@@ -368,7 +370,7 @@
     session.phase = 'rest';
     ensureTracker().setEnabled(false);
     runCountdown(session.intensity.restSec, 'REST', 'GO!', () => {
-      beginExercise(session.idx + 1);
+      beginExercise(session.idx + 1, true);
     });
   }
 
