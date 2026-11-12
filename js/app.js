@@ -556,13 +556,10 @@
   // ---------------------------------------------------------------
   // Progress tab
   // ---------------------------------------------------------------
-  let resizeTimer;
+  // Redraw immediately: charts are cheap, and a debounce can miss the final size.
   window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      const c = $('weightChart');
-      if (c && c.offsetParent) renderProgressTab();
-    }, 150);
+    const c = $('weightChart');
+    if (c && c.offsetParent) renderProgressTab();
   });
   function renderProgressTab() {
     BTB.drawWeightChart($('weightChart'), store);
