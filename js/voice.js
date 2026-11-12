@@ -33,6 +33,8 @@
    */
   VoiceEngine.prototype.speak = function (text, opts) {
     if (!this.supported || !this.enabled || !text) return;
+    // The app-wide Mute button silences coaching too (separate from the Voice toggle).
+    if (global.BTB.Audio && global.BTB.Audio.muted) return;
     const priority = (opts && opts.priority) || 'normal';
     const synth = window.speechSynthesis;
     if (priority === 'high') {
