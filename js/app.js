@@ -403,6 +403,7 @@
     $('setupCard').classList.add('hidden');
     $('sessionCard').classList.remove('hidden');
     buildQueueUI();
+    $('sessionCard').scrollIntoView({ block: 'start' });
     audio.startMusic(selectedIntensity);
 
     const t = ensureTracker();

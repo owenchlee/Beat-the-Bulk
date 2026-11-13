@@ -301,6 +301,25 @@
 .rep-bar-wrap { background: var(--color-surface-2); border-radius: var(--r-pill); height: 8px; overflow: hidden; margin-top: 6px; }
 .rep-bar { height: 100%; border-radius: var(--r-pill); background: var(--grad-primary); transition: width var(--dur-base); }
 
+/* ---------- Hands-free session fit: name, reps and camera stay on one screen ---------- */
+.grid > *, #sessionCard > * { min-width: 0; }
+.grid:has(#sessionCard:not(.hidden)) { grid-template-columns: 1fr; }
+.grid:has(#sessionCard:not(.hidden)) .char-panel { display: none; }
+#sessionCard { scroll-margin-top: 4px; }
+#sessionCard .cam-wrap { max-height: max(140px, calc(100dvh - 340px)); margin: 0 auto; }
+#sessionCard .demo-info p, #sessionCard .demo-tags { display: none; }
+@media (max-height: 500px) {
+  .char-panel { position: static; }
+  #sessionCard:not(.hidden) { display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--sp-3); align-items: start; }
+  #sessionCard .ex-card, #sessionCard .cam-card { margin-bottom: 0 !important; }
+  #sessionCard .queue-card { grid-column: 1 / -1; }
+  #sessionCard .cam-card { padding: var(--sp-2); }
+  #sessionCard .cam-wrap { max-height: calc(100dvh - 40px); }
+  #sessionCard #demoSvg { width: 56px; height: 68px; }
+  #sessionCard .demo-area { padding: var(--sp-2) var(--sp-3); }
+  #sessionCard .rep-area { padding: var(--sp-2) var(--sp-3); }
+}
+
 /* ---------- Camera card ---------- */
 .cam-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--r-lg); padding: var(--sp-4); }
 .cam-wrap { position: relative; border-radius: var(--r-md); overflow: hidden; background: #05070b; aspect-ratio: 16/9; }
