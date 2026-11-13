@@ -168,7 +168,7 @@
   margin-bottom: 2px;
 }
 .char-name-row { display: flex; align-items: center; justify-content: center; gap: 6px; }
-.char-name {
+.char-name { flex: 1; text-align: center;
   font-family: var(--font-display);
   font-size: var(--fs-xl);
   font-weight: 700;
@@ -182,7 +182,7 @@
 .char-name-edit svg { width: 14px; height: 14px; }
 
 .weight-row { display: flex; align-items: baseline; justify-content: center; gap: 5px; margin: var(--sp-2) 0 0; }
-.weight-now { font-family: var(--font-display); font-size: var(--fs-3xl); font-weight: 700; color: var(--color-primary); line-height: 1; font-variant-numeric: tabular-nums; }
+.weight-now { min-width: 4ch; text-align: right; font-family: var(--font-display); font-size: var(--fs-3xl); font-weight: 700; color: var(--color-primary); line-height: 1; font-variant-numeric: tabular-nums; }
 .weight-unit { font-size: var(--fs-sm); font-weight: 700; color: var(--color-fg-faint); }
 .weight-goal { font-size: var(--fs-xs); color: var(--color-fg-faint); font-weight: 600; margin-top: 2px; margin-bottom: var(--sp-3); }
 .weight-goal strong { color: var(--color-accent); font-weight: 800; }
@@ -315,7 +315,7 @@
   background: rgba(5,7,11,0.72); flex-direction: column; gap: 6px;
 }
 .countdown-num { min-width: 6ch; text-align: center; line-height: 1.2; font-variant-numeric: tabular-nums; font-family: var(--font-display); font-size: 5rem; font-weight: 700; color: var(--color-primary); text-shadow: 0 0 30px rgba(249,115,22,0.5); }
-.countdown-label { min-height: 1.4em; font-size: var(--fs-sm); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--color-fg-muted); }
+.countdown-label { min-width: 12ch; text-align: center; min-height: 1.4em; font-size: var(--fs-sm); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--color-fg-muted); }
 
 /* ---------- Queue ---------- */
 .queue-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--r-lg); padding: var(--sp-4); }
