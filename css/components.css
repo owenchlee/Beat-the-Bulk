@@ -291,8 +291,8 @@
 #demoSvg { width: 92px; height: 112px; flex-shrink: 0; }
 .demo-info { flex: 1; min-width: 160px; }
 .demo-info h3 { font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 700; color: var(--color-fg); margin-bottom: 3px; }
-.demo-info p { font-size: var(--fs-sm); color: var(--color-fg-muted); font-weight: 500; line-height: 1.5; }
-.demo-tags { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+.demo-info p { min-height: 4.5em; font-size: var(--fs-sm); color: var(--color-fg-muted); font-weight: 500; line-height: 1.5; }
+.demo-tags { margin-top: 8px; min-height: 26px; align-content: flex-start; display: flex; gap: 6px; flex-wrap: wrap; }
 
 .rep-area { padding: var(--sp-4); display: flex; align-items: center; gap: var(--sp-4); border-top: 1px solid var(--color-border); }
 .rep-big { font-family: var(--font-display); font-size: 3.2rem; font-weight: 700; color: var(--color-primary); line-height: 1; min-width: 64px; text-align: center; font-variant-numeric: tabular-nums; }
