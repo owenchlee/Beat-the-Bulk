@@ -57,7 +57,11 @@
     t.className = 'toast';
     t.innerHTML = BTB.icon('check', 16) + `<span>${msg}</span>`;
     stack.appendChild(t);
-    setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 320); }, 3200);
+    setTimeout(() => {
+      t.style.opacity = '0'; t.style.transition = 'opacity .3s';
+      // Keep faded toasts in flow until all are faded: removing one would shift the others (CLS).
+      setTimeout(() => { if (Array.from(stack.children).every(c => (/** @type {HTMLElement} */ (c)).style.opacity === '0')) stack.replaceChildren(); }, 320);
+    }, 3200);
   }
 
   function launchConfetti() {
