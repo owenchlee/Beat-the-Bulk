@@ -263,19 +263,91 @@
     let n = seconds;
     num.textContent = n;
     if (n <= 3) { audio.play('countdownTick', n); voice.speak(String(n), { priority: 'high' }); }
-    const iv = setInterval(() => {
+    const finish = () => {
+      clearInterval(session.cdIv); clearTimeout(session.cdTo);
+      session.cdIv = session.cdTo = session.cdSkip = null;
+      overlay.classList.add('hidden');
+      cb();
+    };
+    session.cdSkip = finish;
+    session.cdIv = setInterval(() => {
+      if (session.paused) return;
       n--;
       if (n > 0) {
         num.textContent = n;
         if (n <= 3) { audio.play('countdownTick', n); voice.speak(String(n), { priority: 'high' }); }
       } else {
-        clearInterval(iv);
+        clearInterval(session.cdIv); session.cdIv = null;
         num.textContent = doneLabel;
         audio.play('countdownGo');
         voice.speak(doneLabel === 'GO!' ? "Go!" : doneLabel, { priority: 'high' });
-        setTimeout(() => { overlay.classList.add('hidden'); cb(); }, 500);
+        // a pause during the GO flash must hold the hand-off until resume
+        session.cdTo = setTimeout(() => { if (session.paused) session.onResume = finish; else finish(); }, 500);
       }
     }, 1000);
+  }
+
+  // Shared teardown for quit and finish: stop every timer, the tracker and the music.
+  function stopSessionActivity() {
+    if (session) {
+      clearInterval(session.cdIv); clearTimeout(session.cdTo);
+      session.cdIv = session.cdTo = session.cdSkip = null;
+    }
+    stopDemoFallback();
+    clearInterval(demoAnimTimer);
+    ensureTracker().setEnabled(false);
+    audio.stopMusic();
+  }
+
+  function resetSessionButtons() {
+    $('pauseBtn').textContent = 'Pause';
+    $('quitBtn').textContent = 'Quit';
+    $('quitBtn').dataset.armed = '';
+  }
+
+  function togglePause() {
+    if (!session || session.phase === 'done' || session.phase === 'idle') return;
+    session.paused = !session.paused;
+    $('pauseBtn').textContent = session.paused ? 'Resume' : 'Pause';
+    if (session.paused) {
+      audio.stopMusic();
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    } else {
+      audio.startMusic(selectedIntensity);
+      const f = session.onResume; session.onResume = null;
+      if (f) f();
+    }
+  }
+
+  function skipCurrent() {
+    if (!session || session.paused) return;
+    if (session.cdSkip) { session.cdSkip(); return; }
+    if (session.phase !== 'active') return;
+    // skipped exercise earns no credit and is not marked tried
+    session.phase = 'between';
+    stopDemoFallback();
+    clearInterval(demoAnimTimer);
+    if (session.idx + 1 >= session.exercises.length) finishWorkoutSession(); else startRest();
+  }
+
+  function quitWorkout() {
+    if (!session || session.phase === 'done') return;
+    const b = $('quitBtn');
+    if (!b.dataset.armed) {
+      b.dataset.armed = '1';
+      b.textContent = 'Tap again to quit';
+      setTimeout(() => { if (b.dataset.armed) { b.dataset.armed = ''; b.textContent = 'Quit'; } }, 3000);
+      return;
+    }
+    stopSessionActivity();
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    session = null;
+    resetSessionButtons();
+    $('countdownOverlay').classList.add('hidden');
+    $('sessionCard').classList.add('hidden');
+    $('setupCard').classList.remove('hidden');
+    character.setFloat(false);
+    character.update({ pose: 'idle', mood: 'normal' });
   }
 
   function beginExercise(idx) {
@@ -308,7 +380,7 @@
   }
 
   function handleRep(formScore) {
-    if (!session || session.phase !== 'active') return;
+    if (!session || session.paused || session.phase !== 'active') return;
     const ex = session.exercises[session.idx];
     session.reps++;
     session.repsTotal = (session.repsTotal || 0) + 1;
@@ -374,10 +446,7 @@
 
   function finishWorkoutSession() {
     session.phase = 'done';
-    ensureTracker().setEnabled(false);
-    stopDemoFallback();
-    clearInterval(demoAnimTimer);
-    audio.stopMusic();
+    stopSessionActivity();
     audio.play('workoutComplete');
     store.state.totalWorkouts++;
     store.state.totalCaloriesBurned += (session.caloriesBurned || 0);
@@ -402,14 +471,16 @@
     });
     $('setupCard').classList.add('hidden');
     $('sessionCard').classList.remove('hidden');
+    resetSessionButtons();
     buildQueueUI();
     audio.startMusic(selectedIntensity);
 
     const t = ensureTracker();
     $('camStatusText').textContent = 'STARTING…';
     let camSettled = false;
+    const mine = session; // the user may quit before the camera settles
     const fallbackToDemo = () => {
-      if (camSettled) return;
+      if (camSettled || session !== mine) return;
       camSettled = true;
       session.usingCamera = false;
       $('camStatusText').textContent = 'NO CAMERA — DEMO MODE';
@@ -417,7 +488,7 @@
       toast('No camera detected — running demo mode');
     };
     t.start().then(() => {
-      if (camSettled) return; // timeout already claimed demo mode; camera can still light up onPoseFound
+      if (camSettled || session !== mine) return; // timeout already claimed demo mode; camera can still light up onPoseFound
       camSettled = true;
       session.usingCamera = true;
       $('camStatusText').textContent = 'LOADING MODEL…';
@@ -426,6 +497,10 @@
 
     beginExercise(0);
   });
+
+  $('pauseBtn').addEventListener('click', togglePause);
+  $('skipBtn').addEventListener('click', skipCurrent);
+  $('quitBtn').addEventListener('click', quitWorkout);
 
   // ---------------------------------------------------------------
   // End-of-day food modal

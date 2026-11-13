@@ -412,3 +412,6 @@
   box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 8px;
 }
 .toast svg { width: 16px; height: 16px; color: var(--color-accent); }
+
+.session-controls { display: flex; gap: var(--sp-2); margin-bottom: var(--sp-4); }
+.session-controls .btn { flex: 1; }
