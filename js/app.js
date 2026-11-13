@@ -264,6 +264,7 @@
     num.textContent = n;
     if (n <= 3) { audio.play('countdownTick', n); voice.speak(String(n), { priority: 'high' }); }
     const iv = setInterval(() => {
+      if (document.hidden) return; // frozen while the app is in the background
       n--;
       if (n > 0) {
         num.textContent = n;
@@ -277,6 +278,15 @@
       }
     }, 1000);
   }
+
+  // Backgrounded: silence music and voice (ticks and reps are no-ops while hidden). Foreground: resume audio.
+  document.addEventListener('visibilitychange', () => {
+    const c = audio.ctx;
+    if (document.hidden) {
+      if (c && c.state === 'running') c.suspend();
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    } else if (c && c.state === 'suspended' && session && session.phase !== 'done') c.resume();
+  });
 
   function beginExercise(idx) {
     session.idx = idx;
@@ -308,7 +318,7 @@
   }
 
   function handleRep(formScore) {
-    if (!session || session.phase !== 'active') return;
+    if (!session || session.phase !== 'active' || document.hidden) return;
     const ex = session.exercises[session.idx];
     session.reps++;
     session.repsTotal = (session.repsTotal || 0) + 1;
