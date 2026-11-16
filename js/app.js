@@ -352,7 +352,7 @@
     const finish = () => { cancelCountdown(); overlay.classList.add('hidden'); if (session) cb(); };
     countdownSkip = finish;
     const iv = countdownIv = setInterval(() => {
-      if (session && session.paused) return;
+      if ((session && session.paused) || document.hidden) return; // frozen while paused or in the background
       n--;
       if (n > 0) {
         num.textContent = String(n);
@@ -432,6 +432,15 @@
     character.update({ pose: 'idle', mood: 'normal' });
   }
 
+  // Backgrounded: silence music and voice (ticks and reps are no-ops while hidden). Foreground: resume audio.
+  document.addEventListener('visibilitychange', () => {
+    const c = audio.ctx;
+    if (document.hidden) {
+      if (c && c.state === 'running') c.suspend();
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    } else if (c && c.state === 'suspended' && session && session.phase !== 'done') c.resume();
+  });
+
   // afterRest: the rest countdown already counted 3-2-1-GO, so skip a second one.
   /** @param {number} idx @param {boolean} [afterRest] */
   function beginExercise(idx, afterRest) {
@@ -467,7 +476,7 @@
 
   /** @param {number} [formScore] */
   function handleRep(formScore) {
-    if (!session || session.paused || session.phase !== 'active') return;
+    if (!session || session.paused || session.phase !== 'active' || document.hidden) return;
     const ex = session.exercises[session.idx];
     session.reps++;
     session.repsTotal = (session.repsTotal || 0) + 1;
