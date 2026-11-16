@@ -197,8 +197,8 @@
    * @returns {number} Estimated kcal burned.
    */
   function estimateCalories(exercise, reps, bodyWeightLb) {
-    const kg = bodyWeightLb * 0.453592;
-    const minutes = (exercise.secPerRep * reps) / 60;
+    const kg = Math.max(0, Number(bodyWeightLb) || 0) * 0.453592;
+    const minutes = (exercise.secPerRep * Math.max(0, Number(reps) || 0)) / 60;
     const kcalPerMin = exercise.met * 3.5 * kg / 200;
     return kcalPerMin * minutes;
   }

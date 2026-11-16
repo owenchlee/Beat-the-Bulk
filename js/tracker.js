@@ -54,11 +54,16 @@
   function Store() {
     /** @type {StoreState} */
     this.state = Object.assign({}, DEFAULTS, this._plainObject(this._loadJSON('btb_state', {})));
+    // Keep only values matching DEFAULTS' type (finite for numbers), else default.
+    for (const k of Object.keys(DEFAULTS)) {
+      const d = DEFAULTS[k], v = this.state[k];
+      const ok = typeof d === 'number' ? Number.isFinite(v) : d === null ? (v === null || typeof v === 'string') : typeof v === typeof d;
+      if (!ok) this.state[k] = d;
+    }
     this._ensureCollections();
+    const h = this._loadJSON('btb_history', []);
     /** @type {DayRecord[]} */
-    this.history = this._loadJSON('btb_history', []);
-    if (!Array.isArray(this.history)) this.history = [];
-    this.history = this.history.filter(r => r && typeof r === 'object');
+    this.history = Array.isArray(h) ? h.filter(r => r && typeof r === 'object') : [];
     this._base = { state: JSON.parse(JSON.stringify(this.state)), history: this.history.slice() };
   }
   /**
@@ -170,7 +175,7 @@
     ctx.clearRect(0, 0, W, H);
 
     const s = store.state;
-    const data = [{ day: 0, weight: s.startWeight }].concat(store.history.map((/** @type {*} */ h) => ({ day: h.day, weight: h.weight })));
+    const data = [{ day: 0, weight: s.startWeight }].concat(store.history.filter((/** @type {*} */ h) => h && Number.isFinite(h.weight) && Number.isFinite(h.day)).map((/** @type {*} */ h) => ({ day: h.day, weight: h.weight })));
     if (data.length < 2) {
       ctx.fillStyle = '#6b7386'; ctx.font = '13px Barlow, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('Complete a workout to start your chart', W / 2, H / 2);
@@ -225,7 +230,8 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
 
-    const last7 = store.history.slice(-7);
+    const last7 = store.history.filter(d => d && typeof d === 'object').slice(-7)
+      .map(d => ({ day: Number.isFinite(d.day) ? d.day : '?', repsTotal: Number.isFinite(d.repsTotal) ? Math.max(0, d.repsTotal) : 0 }));
     if (!last7.length) {
       ctx.fillStyle = '#6b7386'; ctx.font = '12px Barlow, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('No workouts logged yet', W / 2, H / 2);
