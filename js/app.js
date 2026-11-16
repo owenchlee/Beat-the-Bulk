@@ -278,7 +278,8 @@
     let n = seconds;
     num.textContent = String(n);
     if (n <= 3) { audio.play('countdownTick', n); voice.speak(String(n), { priority: 'high' }); }
-    const iv = setInterval(() => {
+    cancelCountdown();
+    const iv = countdownIv = setInterval(() => {
       n--;
       if (n > 0) {
         num.textContent = String(n);
@@ -288,10 +289,12 @@
         num.textContent = doneLabel;
         audio.play('countdownGo');
         voice.speak(doneLabel === 'GO!' ? "Go!" : doneLabel, { priority: 'high' });
-        setTimeout(() => { overlay.classList.add('hidden'); cb(); }, 500);
+        countdownTo = setTimeout(() => { countdownTo = null; overlay.classList.add('hidden'); if (session) cb(); }, 500);
       }
     }, 1000);
   }
+  let countdownIv = null, countdownTo = null;
+  function cancelCountdown() { clearInterval(countdownIv); clearTimeout(countdownTo); countdownIv = countdownTo = null; }
 
   /** @param {number} idx */
   function beginExercise(idx) {
@@ -732,7 +735,13 @@
       store.reset();
       selectedGoal = store.state.goal;
       selectedIntensity = store.state.intensity;
+      stopDemoFallback();
+      clearInterval(demoAnimTimer);
+      cancelCountdown();
+      audio.stopMusic();
       session = null;
+      $('countdownOverlay').classList.add('hidden');
+      $('modalOverlay').classList.add('hidden');
       $('sessionCard').classList.add('hidden');
       $('setupCard').classList.remove('hidden');
       label('resetBtn', 'x', 'Reset All Progress');
