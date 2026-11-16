@@ -104,7 +104,8 @@
     lastBubbleType = type;
     const opts = MSGS[type] || MSGS.start;
     const line = opts[Math.floor(Math.random() * opts.length)];
-    $('bubble').textContent = line;
+    const b = $('bubble'), bt = /** @type {Text|null} */ (b.firstChild); // edit the text node in place: 1 mutation instead of remove+add
+    if (b.textContent !== line) { if (bt && bt.nodeType === 3 && b.childNodes.length === 1) bt.data = line; else b.textContent = line; }
     if (speakToo) voice.speak(line);
   }
 
@@ -132,8 +133,14 @@
   }
   function buildMilestonesUI() {
     const el = $('milestones');
+    const ms = milestoneThresholds();
+    // Update dots in place when the labels are unchanged; rebuild only on a layout change.
+    if (el.children.length === ms.length && ms.every((m, i) => el.children[i].children[1].textContent === String(Math.round(m)))) {
+      ms.forEach((m, i) => el.children[i].children[0].classList.toggle('reached', store.state.weight <= m + 0.05));
+      return;
+    }
     el.innerHTML = '';
-    milestoneThresholds().forEach((m, i) => {
+    ms.forEach((m, i) => {
       const reached = store.state.weight <= m + 0.05;
       const d = document.createElement('div');
       d.className = 'mstone';
@@ -175,15 +182,21 @@
   /** @param {string} [moodOverride] */
   function refreshCharacterUI(moodOverride) {
     const t = fitnessT();
-    character.update({ t });
-    $('weightNow').textContent = String(Math.round(store.state.weight));
-    $('weightGoalSub').textContent = store.state.goalWeight + ' lbs';
-    $('goalChipVal').textContent = store.state.goalWeight + ' lbs';
-    $('progFill').style.width = Math.round(t * 100) + '%';
-    $('progLabel').textContent = `Journey: ${Math.round(t * 100)}% complete`;
-    $('charStageName').textContent = stageName(t);
-    $('charNameDisplay').textContent = store.state.name;
-    $('streakChip').innerHTML = BTB.icon('flame', 15) + `<span>Day ${liveStreak()} streak</span>`;
+    // Quantise to 0.2% of the journey (sub-pixel change) so most reps skip the character update.
+    const qt = Math.round(t * 500) / 500;
+    if (qt !== character.t) character.update({ t: qt });
+    /** @param {string} id @param {string} v */
+    const setText = (id, v) => { const e = $(id); if (e.textContent !== v) e.textContent = v; };
+    setText('weightNow', String(Math.round(store.state.weight)));
+    setText('weightGoalSub', store.state.goalWeight + ' lbs');
+    setText('goalChipVal', store.state.goalWeight + ' lbs');
+    const pct = Math.round(t * 100) + '%';
+    if ($('progFill').style.width !== pct) $('progFill').style.width = pct;
+    setText('progLabel', `Journey: ${Math.round(t * 100)}% complete`);
+    setText('charStageName', stageName(t));
+    setText('charNameDisplay', store.state.name);
+    const chip = $('streakChip'), chipHtml = BTB.icon('flame', 15) + `<span>Day ${liveStreak()} streak</span>`;
+    if (chip.dataset.html !== chipHtml) { chip.innerHTML = chipHtml; chip.dataset.html = chipHtml; }
     buildMilestonesUI();
     if (moodOverride) character.update({ mood: moodOverride });
   }
@@ -296,13 +309,21 @@
 
   function buildQueueUI() {
     const list = $('queueList');
-    list.innerHTML = '';
+    // Update rows in place when the exercise list is unchanged (only the class and check icon differ).
+    const sid = session.exercises.map((/** @type {any} */ e) => e.key).join();
+    if (list.dataset.sid !== sid) { list.innerHTML = ''; list.dataset.sid = sid; }
     session.exercises.forEach((/** @type {any} */ ex, /** @type {number} */ i) => {
-      const cls = i < session.idx ? 'done' : i === session.idx ? 'active' : 'pending';
-      const row = document.createElement('div');
-      row.className = 'q-item ' + cls;
-      row.innerHTML = `<div class="q-check">${i < session.idx ? BTB.icon('check', 12) : ''}</div>${esc(ex.name)}<span class="q-meta">${esc(ex.reps)} reps</span>`;
-      list.appendChild(row);
+      const cls = 'q-item ' + (i < session.idx ? 'done' : i === session.idx ? 'active' : 'pending');
+      let row = /** @type {HTMLElement} */ (list.children[i]);
+      if (!row) {
+        row = document.createElement('div');
+        row.innerHTML = `<div class="q-check"></div>${esc(ex.name)}<span class="q-meta">${esc(ex.reps)} reps</span>`;
+        list.appendChild(row);
+      }
+      if (row.className !== cls) row.className = cls;
+      const check = /** @type {HTMLElement} */ (row.firstElementChild);
+      const want = i < session.idx ? BTB.icon('check', 12) : '';
+      if (check.dataset.h !== want) { check.innerHTML = want; check.dataset.h = want; }
     });
   }
 
@@ -397,10 +418,13 @@
       session.formScoreCount = (session.formScoreCount || 0) + 1;
     }
 
-    $('repNum').textContent = session.reps;
+    const repNum = $('repNum');
+    // Edit the text node in place (1 mutation, not remove+add) and restart the flash via the animation API (no class churn).
+    const tn = /** @type {Text|null} */ (repNum.firstChild); if (tn) tn.data = String(session.reps); else repNum.textContent = String(session.reps);
     const flashColor = score >= 80 ? 'var(--color-accent)' : score >= 55 ? 'var(--color-warning)' : 'var(--color-destructive)';
-    $('repNum').style.setProperty('--flash-color', flashColor);
-    $('repNum').classList.remove('rep-flash'); void $('repNum').offsetWidth; $('repNum').classList.add('rep-flash');
+    if (repNum.style.getPropertyValue('--flash-color') !== flashColor) repNum.style.setProperty('--flash-color', flashColor);
+    if (repNum.classList.contains('rep-flash')) repNum.getAnimations().forEach(a => { a.cancel(); a.play(); });
+    else repNum.classList.add('rep-flash');
     $('repBar').style.width = Math.min(100, (session.reps / ex.reps) * 100) + '%';
 
     refreshCharacterUI();
