@@ -475,6 +475,7 @@
     session.phase = 'done';
     ensureTracker().setEnabled(false);
     character.clearLiveAngles();
+    tracker.stop();
     stopDemoFallback();
     clearInterval(demoAnimTimer);
     audio.stopMusic();
@@ -852,6 +853,7 @@
       session = null;
       $('countdownOverlay').classList.add('hidden');
       $('modalOverlay').classList.add('hidden');
+      if (tracker) { tracker.setEnabled(false); tracker.stop(); }
       $('sessionCard').classList.add('hidden');
       $('setupCard').classList.remove('hidden');
       label('resetBtn', 'x', 'Reset All Progress');

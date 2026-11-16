@@ -447,21 +447,41 @@
 
   Tracker.prototype.start = function () {
     const self = this;
+    this.stop(); // never run two streams / frame loops
+    const gen = this._gen;
     return loadMediaPipe()
       .then(() => { if (!this.pose) this._initPose(); })
-      .then(() => navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } }))
-      .then(stream => {
-        this.video.srcObject = stream;
-        return this.video.play();
-      })
       .then(() => {
-        this.camera = new Camera(this.video, {
-          onFrame: async () => { await self.pose.send({ image: self.video }); },
+        if (gen !== self._gen) return false; // stopped while MediaPipe was loading
+        // Camera owns the single getUserMedia stream; opening our own would be orphaned.
+        const camera = this.camera = new Camera(this.video, {
+          onFrame: async () => { if (self.camera === camera) await self.pose.send({ image: self.video }); },
           width: 640, height: 480
         });
-        this.camera.start();
-        return true;
+        return Promise.resolve(camera.start()).then(() => {
+          if (gen !== self._gen) { self._release(camera); return false; } // stopped while starting
+          return true;
+        }, err => { self._release(camera); throw err; });
       });
+  };
+
+  /** @param {{ stop: () => void }} camera */
+  Tracker.prototype._release = function (camera) {
+    try { camera.stop(); } catch (e) { /* already stopped */ }
+    const s = /** @type {MediaStream|null} */ (this.video.srcObject);
+    if (s && s.getTracks) s.getTracks().forEach(t => t.stop());
+    this.video.srcObject = null;
+  };
+
+  /** Stops the frame loop and releases the webcam. Safe to call repeatedly. */
+  Tracker.prototype.stop = function () {
+    this._gen = (this._gen || 0) + 1;
+    const cam = this.camera;
+    this.camera = null;
+    if (cam) this._release(cam);
+    else if (this.video.srcObject) this._release({ stop() {} });
+    this.smoothed = null;
+    this.poseFound = false;
   };
 
   global.BTB = global.BTB || {};
