@@ -82,6 +82,7 @@
   /** @param {boolean} m */
   AudioEngine.prototype.setMuted = function (m) {
     this.muted = m; lsSet('btb_muted', m ? '1' : '0');
+    if (m && 'speechSynthesis' in window) window.speechSynthesis.cancel();
     if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 1, this.ctx.currentTime, 0.05);
   };
 

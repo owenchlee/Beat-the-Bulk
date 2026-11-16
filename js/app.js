@@ -98,7 +98,7 @@
     eatBad: ["Worth it... probably.", "We'll work it off next time.", "No regrets. Mostly."],
     milestone: ["Whoa — new milestone unlocked!", "We just hit a big goal!", "Look how far we've come!"]
   };
-  /** @param {keyof typeof MSGS} type @param {boolean} [speakToo] */
+  /** @param {keyof typeof MSGS} type @param {boolean|'queue'} [speakToo] */
   function setBubble(type, speakToo) {
     if (type === lastBubbleType && type !== 'working') return;
     lastBubbleType = type;
@@ -106,7 +106,7 @@
     const line = opts[Math.floor(Math.random() * opts.length)];
     const b = $('bubble'), bt = /** @type {Text|null} */ (b.firstChild); // edit the text node in place: 1 mutation instead of remove+add
     if (b.textContent !== line) { if (bt && bt.nodeType === 3 && b.childNodes.length === 1) bt.data = line; else b.textContent = line; }
-    if (speakToo) voice.speak(line);
+    if (speakToo) voice.speak(line, speakToo === 'queue' ? { priority: 'queue' } : undefined);
   }
 
   // ---------------------------------------------------------------
@@ -366,8 +366,9 @@
   let countdownIv = null, countdownTo = null;
   function cancelCountdown() { clearInterval(countdownIv); clearTimeout(countdownTo); countdownIv = countdownTo = null; }
 
-  /** @param {number} idx */
-  function beginExercise(idx) {
+  // afterRest: the rest countdown already counted 3-2-1-GO, so skip a second one.
+  /** @param {number} idx @param {boolean} [afterRest] */
+  function beginExercise(idx, afterRest) {
     session.idx = idx;
     session.reps = 0;
     session.phase = 'countdown';
@@ -376,14 +377,15 @@
     buildQueueUI();
     ensureTracker().setExercise(ex.key);
     character.update({ pose: 'idle', mood: 'normal' });
-    runCountdown(3, 'GET READY', 'GO!', () => {
+    const go = () => {
       session.phase = 'active';
       ensureTracker().setEnabled(true);
       if (!session.usingCamera && !session.camPending) startDemoFallback(ex);
       character.update({ pose: 'active', mood: 'working' });
       character.setFloat(false);
       setBubble('working');
-    });
+    };
+    if (afterRest) go(); else runCountdown(3, 'GET READY', 'GO!', go);
   }
 
   /** @param {any} ex */
@@ -449,7 +451,7 @@
     stopDemoFallback();
     clearInterval(demoAnimTimer);
     audio.play('setComplete');
-    setBubble('setDone', true);
+    setBubble('setDone', session.idx + 1 < session.exercises.length); // last set: the finish line speaks instead
     buildQueueUI();
     session.exercises[session.idx].completed = true;
     store.markExerciseTried(session.exercises[session.idx].key);
@@ -467,7 +469,7 @@
     session.phase = 'rest';
     ensureTracker().setEnabled(false);
     runCountdown(session.intensity.restSec, 'REST', 'GO!', () => {
-      beginExercise(session.idx + 1);
+      beginExercise(session.idx + 1, true);
     });
   }
 
@@ -490,7 +492,7 @@
     character.showSparkle(true);
     character.wiggle();
     launchConfetti();
-    setBubble('workoutDone', true);
+    setBubble('workoutDone', 'queue');
     setTimeout(showEndOfDayModal, 1500);
   }
 
