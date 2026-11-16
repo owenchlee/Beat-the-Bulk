@@ -693,6 +693,11 @@
   // ---------------------------------------------------------------
   // Progress tab
   // ---------------------------------------------------------------
+  // Redraw immediately: charts are cheap, and a debounce can miss the final size.
+  window.addEventListener('resize', () => {
+    const c = $('weightChart');
+    if (c && c.offsetParent) renderProgressTab();
+  });
   function renderProgressTab() {
     BTB.drawWeightChart($('weightChart'), store);
     BTB.drawWeeklyChart($('weeklyChart'), store);
