@@ -135,7 +135,7 @@
     },
     endurance: {
       key: 'endurance', label: 'Endurance', desc: 'Steady mixed circuit to build stamina.',
-      pool: ['jumping_jacks', 'high_knees', 'squats', 'overhead_press', 'arm_circles', 'toe_touches'], count: 5, iconKey: 'heart'
+      pool: ['jumping_jacks', 'high_knees', 'squats', 'overhead_press', 'arm_circles', 'toe_touches', 'side_reaches'], count: 5, iconKey: 'heart'
     },
     toning: {
       key: 'toning', label: 'Toning', desc: 'Strength-focused moves for muscle definition.',
