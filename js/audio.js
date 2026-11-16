@@ -6,6 +6,9 @@
    offline, and loads instantly.
    ============================================================ */
 (function (global) {
+  // storage may be blocked or full: settings are best-effort
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
   function AudioEngine() {
     this.ctx = /** @type {AudioContext} */ (/** @type {unknown} */ (null));
     this.master = /** @type {GainNode} */ (/** @type {unknown} */ (null));
@@ -20,15 +23,16 @@
     this.nextStepTime = 0;
     this.bpm = 116;
     this.pattern = /** @type {'A'|'B'} */ ('A');
-    this.muted = localStorage.getItem('btb_muted') === '1';
-    this.musicVol = parseFloat(localStorage.getItem('btb_musicVol') || '0.55');
-    this.sfxVol = parseFloat(localStorage.getItem('btb_sfxVol') || '0.8');
+    this.muted = lsGet('btb_muted') === '1';
+    this.musicVol = parseFloat(lsGet('btb_musicVol') || '0.55');
+    this.sfxVol = parseFloat(lsGet('btb_sfxVol') || '0.8');
   }
 
   AudioEngine.prototype.unlock = function () {
     if (this.unlocked) return;
-    this.unlocked = true;
     const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return; // no Web Audio: stay silent
+    this.unlocked = true;
     this.ctx = new Ctx();
     this.master = this.ctx.createGain();
     this.master.gain.value = this.muted ? 0 : 1;
@@ -67,17 +71,17 @@
 
   /** @param {number} v */
   AudioEngine.prototype.setMusicVolume = function (v) {
-    this.musicVol = v; localStorage.setItem('btb_musicVol', String(v));
+    this.musicVol = v; lsSet('btb_musicVol', String(v));
     if (this.musicGain) this.musicGain.gain.setTargetAtTime(v, this.ctx.currentTime, 0.05);
   };
   /** @param {number} v */
   AudioEngine.prototype.setSfxVolume = function (v) {
-    this.sfxVol = v; localStorage.setItem('btb_sfxVol', String(v));
+    this.sfxVol = v; lsSet('btb_sfxVol', String(v));
     if (this.sfxGain) this.sfxGain.gain.setTargetAtTime(v, this.ctx.currentTime, 0.05);
   };
   /** @param {boolean} m */
   AudioEngine.prototype.setMuted = function (m) {
-    this.muted = m; localStorage.setItem('btb_muted', m ? '1' : '0');
+    this.muted = m; lsSet('btb_muted', m ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 1, this.ctx.currentTime, 0.05);
   };
 
