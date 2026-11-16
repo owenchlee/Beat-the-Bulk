@@ -482,3 +482,6 @@
   .switch { height: 44px; }
   .switch-track { top: 9px; bottom: 9px; }
 }
+
+.session-controls { display: flex; gap: var(--sp-2); margin-bottom: var(--sp-4); }
+.session-controls .btn { flex: 1; }
