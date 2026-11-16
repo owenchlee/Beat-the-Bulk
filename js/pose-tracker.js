@@ -212,6 +212,7 @@
             state.formT = 0;
             return { done: true, formScore };
           }
+          state.formT = 0; // same-side rep rejected: do not carry its depth into the next counted rep
         }
       }
       return false;
@@ -245,6 +246,7 @@
             state.formT = 0;
             return { done: true, formScore };
           }
+          state.formT = 0; // same-side rep rejected: do not carry its depth into the next counted rep
         }
       }
       return false;
