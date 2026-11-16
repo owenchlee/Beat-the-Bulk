@@ -187,13 +187,25 @@
   function switchTab(name) {
     TABS.forEach(t => {
       $('tabBtn-' + t).setAttribute('aria-selected', String(t === name));
+      $('tabBtn-' + t).tabIndex = t === name ? 0 : -1;
       $('panel' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== name);
     });
     if (audio.unlocked) audio.play('tabSwitch');
     if (name === 'progress') renderProgressTab();
     if (name === 'character') renderCharacterTab();
   }
-  TABS.forEach(t => $('tabBtn-' + t).addEventListener('click', () => switchTab(t)));
+  TABS.forEach((t, i) => {
+    const btn = $('tabBtn-' + t);
+    btn.addEventListener('click', () => switchTab(t));
+    btn.addEventListener('keydown', e => {
+      const n = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: TABS.length - 1 }[e.key];
+      if (n === undefined) return;
+      e.preventDefault();
+      const to = TABS[(n + TABS.length) % TABS.length];
+      switchTab(to);
+      $('tabBtn-' + to).focus();
+    });
+  });
 
   // Another tab saved: pick up its data and redraw (the running workout session is untouched).
   window.addEventListener('storage', e => {
@@ -455,7 +467,9 @@
     $('setupCard').classList.add('hidden');
     $('sessionCard').classList.remove('hidden');
     buildQueueUI();
-    $('sessionCard').scrollIntoView({ block: 'start' });
+    const sc = $('sessionCard'); sc.tabIndex = -1;
+    sc.scrollIntoView({ block: 'start' });
+    sc.focus({ preventScroll: true });
     audio.startMusic(selectedIntensity);
 
     const t = ensureTracker();
@@ -555,7 +569,24 @@
     $('sleepBtn').addEventListener('click', finishDay);
     $('shareBtn').addEventListener('click', shareWorkoutResult);
     $('modalOverlay').classList.remove('hidden');
+    setBackgroundInert(true);
+    $('modalBox').focus();
   }
+
+  // Keep keyboard focus inside the open modal; background is inert.
+  function setBackgroundInert(on) {
+    /** @type {HTMLElement[]} */ (Array.from(document.body.children)).forEach(el => {
+      if (el.tagName === 'DIV' && el.id !== 'modalOverlay' && el.id !== 'toastStack') el.inert = on;
+    });
+  }
+  $('modalOverlay').addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return;
+    const f = /** @type {HTMLElement[]} */ (Array.from($('modalBox').querySelectorAll('button:not([disabled])')));
+    if (!f.length) { e.preventDefault(); return; }
+    const first = f[0], last = f[f.length - 1], a = document.activeElement;
+    if (e.shiftKey && (a === first || a === $('modalBox'))) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+  });
 
   function shareWorkoutResult() {
     const canvas = document.createElement('canvas');
@@ -599,6 +630,7 @@
     store.save();
 
     $('modalOverlay').classList.add('hidden');
+    setBackgroundInert(false);
     session = null;
     character.setFloat(false);
     character.showSparkle(false);
@@ -606,6 +638,7 @@
     $('sessionCard').classList.add('hidden');
     $('setupCard').classList.remove('hidden');
     renderSetup();
+    $('beginWorkoutBtn').focus();
     refreshCharacterUI();
     setBubble(fitnessT() > 0.6 ? 'fit' : 'start');
     toast(`Day complete — streak now ${store.state.streak}!`);

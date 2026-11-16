@@ -60,9 +60,9 @@
     <div class="right">
       <nav class="tabbar" role="tablist" aria-label="Sections">
         <button class="tab-btn" id="tabBtn-workout" role="tab" aria-selected="true" aria-controls="panelWorkout" data-tab="workout"></button>
-        <button class="tab-btn" id="tabBtn-progress" role="tab" aria-selected="false" aria-controls="panelProgress" data-tab="progress"></button>
-        <button class="tab-btn" id="tabBtn-character" role="tab" aria-selected="false" aria-controls="panelCharacter" data-tab="character"></button>
-        <button class="tab-btn" id="tabBtn-settings" role="tab" aria-selected="false" aria-controls="panelSettings" data-tab="settings"></button>
+        <button class="tab-btn" id="tabBtn-progress" role="tab" aria-selected="false" tabindex="-1" aria-controls="panelProgress" data-tab="progress"></button>
+        <button class="tab-btn" id="tabBtn-character" role="tab" aria-selected="false" tabindex="-1" aria-controls="panelCharacter" data-tab="character"></button>
+        <button class="tab-btn" id="tabBtn-settings" role="tab" aria-selected="false" tabindex="-1" aria-controls="panelSettings" data-tab="settings"></button>
       </nav>
 
       <!-- ---------- WORKOUT TAB ---------- -->
@@ -98,7 +98,7 @@
               </div>
             </div>
             <div class="rep-area">
-              <div class="rep-big" id="repNum">0</div>
+              <div class="rep-big" id="repNum" aria-live="polite" aria-atomic="true">0</div>
               <div class="rep-info">
                 <div class="rep-of" id="repOf">/ 10 reps</div>
                 <div class="rep-bar-wrap"><div class="rep-bar" id="repBar" style="width:0%"></div></div>
@@ -111,11 +111,11 @@
               <video id="camVideo" autoplay playsinline muted></video>
               <canvas id="poseCanvas"></canvas>
               <div class="countdown-overlay hidden" id="countdownOverlay">
-                <div class="countdown-num" id="countdownNum">3</div>
+                <div class="countdown-num" id="countdownNum" aria-live="polite">3</div>
                 <div class="countdown-label" id="countdownLabel">GET READY</div>
               </div>
               <div class="cam-overlay">
-                <div class="cam-status" id="camStatus"><span class="dot pulse-dot"></span><span id="camStatusText">STARTING…</span></div>
+                <div class="cam-status" id="camStatus"><span class="dot pulse-dot"></span><span id="camStatusText" role="status">STARTING…</span></div>
                 <div class="cam-tip">Stand ~2m back, full body in view</div>
               </div>
             </div>
@@ -227,7 +227,7 @@
 
 <!-- End-of-workout / meal modal -->
 <div class="modal-overlay hidden" id="modalOverlay">
-  <div class="modal" id="modalBox" role="dialog" aria-modal="true" aria-label="Workout complete"></div>
+  <div class="modal" id="modalBox" role="dialog" aria-modal="true" aria-label="Workout complete" tabindex="-1"></div>
 </div>
 
 
