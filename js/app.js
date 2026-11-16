@@ -333,7 +333,7 @@
     store.state.totalReps++;
 
     const kcal = BTB.estimateCalories(ex, 1, store.state.weight);
-    const lbs = BTB.kcalToLbs(kcal);
+    const lbs = BTB.kcalToLbs(kcal) * BTB.BURN_GAME_SCALE;
     session.caloriesBurned = (session.caloriesBurned || 0) + kcal;
     store.state.weight = Math.max(store.state.goalWeight, store.state.weight - lbs);
 
