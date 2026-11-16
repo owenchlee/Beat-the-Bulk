@@ -354,6 +354,7 @@
     refreshCharacterUI();
     checkMilestoneCrossing();
     checkAchievements();
+    store.save();
     audio.play('rep');
     character.bounce();
     character.showSweat(true);
@@ -377,6 +378,7 @@
     session.exercises[session.idx].completed = true;
     store.markExerciseTried(session.exercises[session.idx].key);
     checkAchievements();
+    store.save();
 
     if (session.idx + 1 >= session.exercises.length) {
       finishWorkoutSession();
@@ -500,6 +502,7 @@
         const gainLbs = BTB.kcalToLbs(f.cal);
         store.state.weight = Math.min(store.state.startWeight + 15, store.state.weight + gainLbs);
         session.caloriesEaten = (session.caloriesEaten || 0) + f.cal;
+        store.save();
         refreshCharacterUI();
         audio.play(f.healthy ? 'eatHealthy' : 'eatUnhealthy');
         character.wiggle();
