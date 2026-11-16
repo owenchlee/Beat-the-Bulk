@@ -10,13 +10,17 @@
   const NS = 'http://www.w3.org/2000/svg';
   const TAU = Math.PI / 180;
 
+  /** @param {number} a @param {number} b @param {number} t */
   function lerp(a, b, t) { return a + (b - a) * t; }
+  /** @param {number} t */
   function clamp01(t) { return Math.max(0, Math.min(1, t)); }
 
+  /** @param {string} hex */
   function hexToRgb(hex) {
     const n = parseInt(hex.replace('#', ''), 16);
     return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
   }
+  /** @param {string} hexA @param {string} hexB @param {number} t */
   function lerpColor(hexA, hexB, t) {
     const a = hexToRgb(hexA), b = hexToRgb(hexB);
     const r = Math.round(lerp(a.r, b.r, t));
@@ -25,6 +29,7 @@
     return `rgb(${r},${g},${bl})`;
   }
 
+  /** @param {number} cx @param {number} cy @param {number} angDeg @param {number} len */
   function polar(cx, cy, angDeg, len) {
     const a = angDeg * TAU;
     return { x: cx + len * Math.cos(a), y: cy + len * Math.sin(a) };
@@ -35,6 +40,7 @@
   // primitives are far more robust than a single hand-rolled arc path (which
   // can self-intersect and carve a hole when radii differ) and render
   // identically once filled with the same color.
+  /** @param {string} fill @param {number} x1 @param {number} y1 @param {number} r1 @param {number} x2 @param {number} y2 @param {number} r2 */
   function limb(fill, x1, y1, r1, x2, y2, r2) {
     const dx = x2 - x1, dy = y2 - y1;
     const len = Math.hypot(dx, dy) || 1;
@@ -53,6 +59,7 @@
     return frag;
   }
 
+  /** @param {string} tag @param {Record<string, any>} attrs */
   function el(tag, attrs) {
     const e = document.createElementNS(NS, tag);
     for (const k in attrs) e.setAttribute(k, attrs[k]);
@@ -76,7 +83,13 @@
   const SHOE_STRIPE_HEAVY = '#9ca3af';
   const SHOE_STRIPE_FIT = '#f97316';
 
+  /**
+   * @param {HTMLElement} mount
+   * @param {any} [opts]
+   */
   function Character(mount, opts) {
+    /** @type {Record<string, any>} */
+    this.groups = {};
     this.mount = mount;
     this.t = 0; // 0 = heavy, 1 = fit
     this.pose = 'idle';
@@ -133,7 +146,6 @@
     this.mount.appendChild(svg);
     this.svg = svg;
     this.body = body;
-    this.groups = {};
     ['legL', 'armL', 'torso', 'outfitDetail', 'armR', 'legR', 'neck', 'head'].forEach(key => {
       this.groups[key] = document.getElementById(this.mount.id + '_' + key);
     });
@@ -187,18 +199,20 @@
     g.appendChild(spark);
   };
 
+  /** @param {number} t */
   Character.prototype._setOutfitColors = function (t) {
-    document.getElementById('outfitStop1').setAttribute('stop-color', lerpColor(OUTFIT_HEAVY, '#2fbf6b', t));
-    document.getElementById('outfitStop2').setAttribute('stop-color', lerpColor('#4b5563', OUTFIT_FIT, t));
+    document.getElementById('outfitStop1')?.setAttribute('stop-color', lerpColor(OUTFIT_HEAVY, '#2fbf6b', t));
+    document.getElementById('outfitStop2')?.setAttribute('stop-color', lerpColor('#4b5563', OUTFIT_FIT, t));
   };
 
+  /** @param {any} [opts] */
   Character.prototype.update = function (opts) {
     opts = opts || {};
     if (opts.t !== undefined) this.t = clamp01(opts.t);
     if (opts.pose) this.pose = opts.pose;
     if (opts.mood) this.mood = opts.mood;
     const t = this.t;
-    const P = POSES[this.pose] || POSES.idle;
+    const P = /** @type {any} */ (POSES)[this.pose] || POSES.idle;
     this._setOutfitColors(t);
 
     // ---- Proportions driven by t ----
@@ -214,7 +228,7 @@
     const cx = 100, shoulderY = 96 + bob, hipY = 150 + bob;
     const lean = P.lean;
 
-    this.body.setAttribute('transform', `rotate(${lean} 100 150)`);
+    this.body?.setAttribute('transform', `rotate(${lean} 100 150)`);
 
     // Shoulders / hips anchor points
     const shL = { x: cx - shoulderGap / 2, y: shoulderY };
@@ -244,6 +258,7 @@
     const shoeStripe = lerpColor(SHOE_STRIPE_HEAVY, SHOE_STRIPE_FIT, t);
     const shortsColor = lerpColor(SHORTS_HEAVY, SHORTS_FIT, t);
 
+    /** @param {any} hip @param {any} kn @param {any} an @param {number} r1 @param {number} r2 */
     function buildLeg(hip, kn, an, r1, r2) {
       const g = document.createDocumentFragment();
       g.appendChild(limb(shortsColor, hip.x, hip.y, r1, kn.x, kn.y, r1 * 0.82));
@@ -291,9 +306,9 @@
     this.groups.head.setAttribute('transform', `translate(0 ${bob * 0.3})`);
 
     // ---- Aura ----
-    document.getElementById('auraGlow').setAttribute('opacity', (0.08 + t * 0.22).toFixed(2));
-    document.getElementById('auraGlow').setAttribute('rx', String(70 + t * 14));
-    document.getElementById('auraGlow').setAttribute('ry', String(88 + t * 10));
+    document.getElementById('auraGlow')?.setAttribute('opacity', (0.08 + t * 0.22).toFixed(2));
+    document.getElementById('auraGlow')?.setAttribute('rx', String(70 + t * 14));
+    document.getElementById('auraGlow')?.setAttribute('ry', String(88 + t * 10));
 
     this._applyMood();
   };
@@ -313,14 +328,16 @@
       default: curve = 78 - baseSmile; browTilt = -baseSmile * 0.3;
     }
     mouth.setAttribute('d', `M86 76 Q100 ${curve} 114 76`);
-    browL.setAttribute('transform', `rotate(${browTilt} 86 45)`);
-    browR.setAttribute('transform', `rotate(${-browTilt} 114 45)`);
+    browL?.setAttribute('transform', `rotate(${browTilt} 86 45)`);
+    browR?.setAttribute('transform', `rotate(${-browTilt} 114 45)`);
   };
 
+  /** @param {any} on */
   Character.prototype.showSweat = function (on) {
     const s = document.getElementById('partSweat');
     if (s) s.setAttribute('opacity', on ? '1' : '0');
   };
+  /** @param {any} on */
   Character.prototype.showSparkle = function (on) {
     const s = document.getElementById('partSparkle');
     if (s) s.style.opacity = on ? '1' : '0';
@@ -341,6 +358,7 @@
     this.mount.classList.remove('char-wiggle'); void this.mount.offsetWidth;
     this.mount.classList.add('char-wiggle');
   };
+  /** @param {any} on */
   Character.prototype.setFloat = function (on) {
     this.mount.classList.toggle('char-float', !!on);
   };
@@ -349,6 +367,7 @@
   global.BTB.Character = Character;
 
   // Random idle blink loop, started lazily by app.js
+  /** @param {any} charInstance */
   global.BTB.startBlinkLoop = function (charInstance) {
     function loop() {
       charInstance.blink();

@@ -47,7 +47,9 @@
   function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
   /** @param {number} d @returns {number} Delta normalized into [-180, 180]. */
   function normAngleDelta(d) { while (d > 180) d -= 360; while (d < -180) d += 360; return d; }
+  /** @param {any[]} lm @param {number} i @param {number} [thr] @returns {boolean} */
   function vis(lm, i, thr) { return !!(lm[i] && lm[i].visibility !== undefined && lm[i].visibility > (thr || 0.45)); }
+  /** @param {any[]} lm @param {number[]} idxs @param {number} [thr] @returns {boolean} */
   function visAll(lm, idxs, thr) { return idxs.every(i => vis(lm, i, thr)); }
 
   /**
@@ -100,7 +102,7 @@
    * `active` was already decided by the caller, tracking the deepest
    * (best-form) value reached during the active phase in state.formT, and
    * emitting {done, formScore} on rep completion instead of a bare boolean.
-   * @param {Object} state
+   * @param {{phase?: string, aHold?: number, rHold?: number, formT?: number}} state
    * @param {boolean} active
    * @param {number} metric
    * @param {number} atThreshold
@@ -116,10 +118,11 @@
     return { done: true, formScore };
   }
 
+  /** @type {Record<string, (lm: any[], state: any, scale: number) => any>} */
   const Detectors = {
     jumping_jacks(lm, state, scale) {
       if (!visAll(lm, [11, 12, 13, 14, 15, 16, 23, 24, 27, 28])) return false;
-      const armMargin = side => {
+      const armMargin = (/** @type {string} */ side) => {
         const sh = lm[side === 'L' ? 11 : 12], wr = lm[side === 'L' ? 15 : 16], el = lm[side === 'L' ? 13 : 14];
         const elbowStraightish = (angleAt(sh, el, wr) || 0) > 120;
         return elbowStraightish ? (sh.y - wr.y) / scale : -1;
@@ -134,7 +137,7 @@
 
     overhead_press(lm, state, scale) {
       if (!visAll(lm, [11, 12, 13, 14, 15, 16])) return false;
-      const raisedMargin = side => {
+      const raisedMargin = (/** @type {string} */ side) => {
         const sh = lm[side === 'L' ? 11 : 12], wr = lm[side === 'L' ? 15 : 16], el = lm[side === 'L' ? 13 : 14];
         const straight = (angleAt(sh, el, wr) || 0) > 140;
         return straight ? (sh.y - wr.y) / scale : -1;
@@ -182,7 +185,7 @@
 
     high_knees(lm, state, scale) {
       if (!visAll(lm, [23, 24, 25, 26])) return false;
-      const lift = side => {
+      const lift = (/** @type {string} */ side) => {
         const hip = lm[side === 'L' ? 23 : 24], knee = lm[side === 'L' ? 25 : 26];
         const downAngle = Math.atan2(knee.x - hip.x, knee.y - hip.y) * 180 / Math.PI;
         return Math.abs(downAngle);
@@ -262,7 +265,7 @@
 
     lateral_raises(lm, state, scale) {
       if (!visAll(lm, [11, 12, 15, 16])) return false;
-      const sideMetric = side => {
+      const sideMetric = (/** @type {string} */ side) => {
         const sh = lm[side === 'L' ? 11 : 12], wr = lm[side === 'L' ? 15 : 16];
         const atShoulderHeight = Math.abs(sh.y - wr.y) / scale < 0.14;
         const armOut = Math.abs(wr.x - sh.x) / scale;
@@ -285,6 +288,11 @@
     }
   };
 
+  /**
+   * @param {any} videoEl
+   * @param {any} canvasEl
+   * @param {any} [opts]
+   */
   function Tracker(videoEl, canvasEl, opts) {
     this.video = videoEl;
     this.canvas = canvasEl;
@@ -302,27 +310,30 @@
 
   Tracker.prototype._initPose = function () {
     const self = this;
-    this.pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}` });
+    this.pose = new Pose({ locateFile: (/** @type {string} */ f) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}` });
     this.pose.setOptions({
       modelComplexity: 1,
       smoothLandmarks: true,
       minDetectionConfidence: 0.6,
       minTrackingConfidence: 0.6
     });
-    this.pose.onResults(res => self._onResults(res));
+    this.pose.onResults((/** @type {any} */ res) => self._onResults(res));
   };
 
+  /** @param {string} detectorKey */
   Tracker.prototype.setExercise = function (detectorKey) {
     this.currentDetectorKey = detectorKey;
     this.exState = freshState();
   };
 
+  /** @param {boolean} on */
   Tracker.prototype.setEnabled = function (on) { this.enabled = on; };
 
+  /** @param {any[]} raw */
   Tracker.prototype._smooth = function (raw) {
     const ALPHA = 0.5;
     if (!this.smoothed) {
-      this.smoothed = raw.map(p => ({ x: p.x, y: p.y, z: p.z, visibility: p.visibility }));
+      this.smoothed = raw.map((/** @type {any} */ p) => ({ x: p.x, y: p.y, z: p.z, visibility: p.visibility }));
       return this.smoothed;
     }
     for (let i = 0; i < raw.length; i++) {
@@ -334,6 +345,7 @@
     return this.smoothed;
   };
 
+  /** @param {any} results */
   Tracker.prototype._onResults = function (results) {
     const canvas = this.canvas, ctx = this.ctx;
     canvas.width = this.video.videoWidth || 640;

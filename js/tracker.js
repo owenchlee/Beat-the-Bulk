@@ -73,11 +73,12 @@
   };
   /** @param {string} id */
   Store.prototype.unlockAchievement = function (id) {
-    if (!this.state.unlockedAchievements.includes(id)) this.state.unlockedAchievements.push(id);
+    const list = this.state.unlockedAchievements || (this.state.unlockedAchievements = []);
+    if (!list.includes(id)) list.push(id);
   };
   /** @param {string} key */
   Store.prototype.markExerciseTried = function (key) {
-    this.state.exercisesTried[key] = true;
+    (this.state.exercisesTried || (this.state.exercisesTried = {}))[key] = true;
   };
   Store.prototype.save = function () {
     localStorage.setItem('btb_state', JSON.stringify(this.state));
@@ -114,6 +115,7 @@
   }
 
   // ---- Weight-over-time line chart on <canvas> ----
+  /** @param {any} canvas @param {any} store */
   function drawWeightChart(canvas, store) {
     const ctx = canvas.getContext('2d');
     const W = canvas.clientWidth || 380, H = 170;
@@ -124,7 +126,7 @@
     ctx.clearRect(0, 0, W, H);
 
     const s = store.state;
-    const data = [{ day: 0, weight: s.startWeight }].concat(store.history.map(h => ({ day: h.day, weight: h.weight })));
+    const data = [{ day: 0, weight: s.startWeight }].concat(store.history.map((/** @type {*} */ h) => ({ day: h.day, weight: h.weight })));
     if (data.length < 2) {
       ctx.fillStyle = '#6b7386'; ctx.font = '13px Barlow, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('Complete a workout to start your chart', W / 2, H / 2);
@@ -135,6 +137,7 @@
     const mx = Math.max(s.startWeight, ...data.map(d => d.weight)) + 4;
     const xs = (W - pad * 2) / (data.length - 1);
     const ys = (H - pad * 1.4) / (mx - mn);
+    /** @param {number} w */
     const yFor = w => (H - pad * 0.6) - (w - mn) * ys;
 
     // Goal dashed line
@@ -168,6 +171,7 @@
   }
 
   // ---- Weekly reps bar chart ----
+  /** @param {any} canvas @param {any} store */
   function drawWeeklyChart(canvas, store) {
     const ctx = canvas.getContext('2d');
     const W = canvas.clientWidth || 380, H = 120;
@@ -184,9 +188,9 @@
       return;
     }
     const pad = 24;
-    const maxReps = Math.max(...last7.map(d => d.repsTotal), 10);
+    const maxReps = Math.max(...last7.map((/** @type {*} */ d) => d.repsTotal), 10);
     const bw = (W - pad * 2) / last7.length;
-    last7.forEach((d, i) => {
+    last7.forEach((/** @type {*} */ d, /** @type {number} */ i) => {
       const h = (d.repsTotal / maxReps) * (H - pad * 1.6);
       const x = pad + i * bw + bw * 0.18;
       const y = H - pad * 0.8 - h;
@@ -199,6 +203,7 @@
       ctx.fillText('D' + d.day, x + w / 2, H - 6);
     });
   }
+  /** @param {CanvasRenderingContext2D} ctx @param {number} x @param {number} y @param {number} w @param {number} h @param {number} r */
   function roundRect(ctx, x, y, w, h, r) {
     if (h < 1) h = 1;
     ctx.beginPath();

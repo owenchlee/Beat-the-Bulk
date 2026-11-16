@@ -12,7 +12,7 @@
     fg: '#f7f8fa', fgMuted: '#9aa4b8', fgFaint: '#6b7386', border: 'rgba(255,255,255,0.10)'
   };
 
-  /** @param {CanvasRenderingContext2D} ctx */
+  /** @param {CanvasRenderingContext2D} ctx @param {number} x @param {number} y @param {number} w @param {number} h @param {number} r */
   function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -23,10 +23,12 @@
     ctx.closePath();
   }
 
+  /** @param {string} hex */
   function hexToRgb(hex) {
     const n = parseInt(hex.slice(1), 16);
     return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
   }
+  /** @param {string} a @param {string} b @param {number} t */
   function lerpColor(a, b, t) {
     const pa = hexToRgb(a), pb = hexToRgb(b);
     const r = Math.round(pa.r + (pb.r - pa.r) * t);
@@ -39,6 +41,7 @@
   // rig, which is built for DOM/SVG manipulation, not canvas), scaled by
   // the same 0-1 fitness fraction app.js already computes — heavy/grey at
   // t=0 through fit/on-brand orange+green at t=1.
+  /** @param {CanvasRenderingContext2D} ctx @param {number} cx @param {number} cy @param {number} scale @param {number} t */
   function drawSilhouette(ctx, cx, cy, scale, t) {
     const bodyColor = lerpColor('#5b6272', '#e8a97a', Math.min(1, t + 0.3));
     const outfitColor = lerpColor('#3a4152', COLORS.accent, t);
@@ -71,7 +74,7 @@
     const session = data.session, store = data.store, t = data.t || 0;
     const W = 1080, H = 1080;
     canvas.width = W; canvas.height = H;
-    const ctx = canvas.getContext('2d');
+    const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
 
     const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
     bgGrad.addColorStop(0, COLORS.bgAlt);

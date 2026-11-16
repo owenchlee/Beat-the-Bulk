@@ -2,15 +2,21 @@
    BEAT THE BULK — App orchestration
    ============================================================ */
 (function () {
-  const $ = id => document.getElementById(id);
+  /** @param {string} id @returns {HTMLElement} */
+  const $ = id => /** @type {HTMLElement} */ (document.getElementById(id));
   const store = new BTB.Store();
   const audio = BTB.Audio;
   const voice = BTB.Voice;
 
-  let character, tracker;
+  /** @type {any} */
+  let character;
+  /** @type {any} */
+  let tracker;
   let selectedGoal = store.state.goal || 'weight_loss';
   let selectedIntensity = store.state.intensity || 'moderate';
+  /** @type {any} */
   let session = null; // active workout session
+  /** @type {any} */
   let demoAnimTimer = null;
   let lastBubbleType = '';
   let resetArmed = false;
@@ -20,6 +26,7 @@
   // ---------------------------------------------------------------
   // Static icon/label injection (SVG icons, not emoji, per style guide)
   // ---------------------------------------------------------------
+  /** @param {string} id @param {string} iconName @param {string} text */
   function label(id, iconName, text) {
     const el = $(id);
     if (!el) return;
@@ -51,6 +58,7 @@
   // ---------------------------------------------------------------
   // Toast
   // ---------------------------------------------------------------
+  /** @param {string} msg */
   function toast(msg) {
     const stack = $('toastStack');
     const t = document.createElement('div');
@@ -87,6 +95,7 @@
     eatBad: ["Worth it... probably.", "We'll work it off next time.", "No regrets. Mostly."],
     milestone: ["Whoa — new milestone unlocked!", "We just hit a big goal!", "Look how far we've come!"]
   };
+  /** @param {keyof typeof MSGS} type @param {boolean} [speakToo] */
   function setBubble(type, speakToo) {
     if (type === lastBubbleType && type !== 'working') return;
     lastBubbleType = type;
@@ -104,6 +113,7 @@
     if (span <= 0) return 1;
     return Math.max(0, Math.min(1, (store.state.startWeight - store.state.weight) / span));
   }
+  /** @param {number} t */
   function stageName(t) {
     if (t < 0.15) return 'Getting Started';
     if (t < 0.4) return 'Building Momentum';
@@ -146,10 +156,11 @@
     audio.play('milestone');
     character.showSparkle(true);
     setTimeout(() => { if (!session || session.phase !== 'done') character.showSparkle(false); }, 1600);
-    newly.forEach(a => toast(`Achievement unlocked: ${a.name}`));
+    newly.forEach((/** @type {any} */ a) => toast(`Achievement unlocked: ${a.name}`));
     setBubble('milestone', true);
   }
 
+  /** @param {string} [moodOverride] */
   function refreshCharacterUI(moodOverride) {
     const t = fitnessT();
     character.update({ t });
@@ -169,6 +180,7 @@
   // Tabs
   // ---------------------------------------------------------------
   const TABS = ['workout', 'progress', 'character', 'settings'];
+  /** @param {string} name */
   function switchTab(name) {
     TABS.forEach(t => {
       $('tabBtn-' + t).setAttribute('aria-selected', String(t === name));
@@ -185,6 +197,7 @@
   // ---------------------------------------------------------------
   const GOAL_ICONS = { weight_loss: 'flame', endurance: 'heart', toning: 'bolt', quick_cardio: 'clock' };
 
+  /** @param {HTMLElement} container @param {any[]} entries @param {string} selectedKey @param {Record<string,string>|null} iconMap @param {(key:string)=>void} onPick */
   function renderChoices(container, entries, selectedKey, iconMap, onPick) {
     container.innerHTML = '';
     entries.forEach(item => {
@@ -207,9 +220,9 @@
       selectedIntensity = key; store.state.intensity = key; store.save(); renderSetup();
     });
     const preview = BTB.buildWorkout(selectedGoal, selectedIntensity, store.state.day);
-    const totalReps = preview.exercises.reduce((a, e) => a + e.reps, 0);
-    const kcal = preview.exercises.reduce((a, e) => a + BTB.estimateCalories(e, e.reps, store.state.weight), 0);
-    const activeMin = preview.exercises.reduce((a, e) => a + e.secPerRep * e.reps, 0) / 60;
+    const totalReps = preview.exercises.reduce((/** @type {number} */ a, /** @type {any} */ e) => a + e.reps, 0);
+    const kcal = preview.exercises.reduce((/** @type {number} */ a, /** @type {any} */ e) => a + BTB.estimateCalories(e, e.reps, store.state.weight), 0);
+    const activeMin = preview.exercises.reduce((/** @type {number} */ a, /** @type {any} */ e) => a + e.secPerRep * e.reps, 0) / 60;
     const restMin = (preview.exercises.length - 1) * preview.intensity.restSec / 60;
     const totalMin = Math.max(1, Math.round(activeMin + restMin));
     $('setupSummary').innerHTML = `
@@ -235,7 +248,7 @@
   function buildQueueUI() {
     const list = $('queueList');
     list.innerHTML = '';
-    session.exercises.forEach((ex, i) => {
+    session.exercises.forEach((/** @type {any} */ ex, /** @type {number} */ i) => {
       const cls = i < session.idx ? 'done' : i === session.idx ? 'active' : 'pending';
       const row = document.createElement('div');
       row.className = 'q-item ' + cls;
@@ -244,10 +257,11 @@
     });
   }
 
+  /** @param {any} ex */
   function loadExerciseUI(ex) {
     $('exName').textContent = ex.name;
     $('exTip').textContent = ex.tip;
-    $('exTags').innerHTML = ex.tags.map(t => `<span class="tag">${t}</span>`).join('');
+    $('exTags').innerHTML = ex.tags.map((/** @type {string} */ t) => `<span class="tag">${t}</span>`).join('');
     $('repNum').textContent = '0';
     $('repOf').textContent = `/ ${ex.reps} reps`;
     $('repBar').style.width = '0%';
@@ -256,17 +270,18 @@
     demoAnimTimer = setInterval(() => { ph = 1 - ph; ex.demo(ph); }, 900);
   }
 
+  /** @param {number} seconds @param {string} startLabel @param {string} doneLabel @param {() => void} cb */
   function runCountdown(seconds, startLabel, doneLabel, cb) {
     const overlay = $('countdownOverlay'), num = $('countdownNum'), lbl = $('countdownLabel');
     overlay.classList.remove('hidden');
     lbl.textContent = startLabel;
     let n = seconds;
-    num.textContent = n;
+    num.textContent = String(n);
     if (n <= 3) { audio.play('countdownTick', n); voice.speak(String(n), { priority: 'high' }); }
     const iv = setInterval(() => {
       n--;
       if (n > 0) {
-        num.textContent = n;
+        num.textContent = String(n);
         if (n <= 3) { audio.play('countdownTick', n); voice.speak(String(n), { priority: 'high' }); }
       } else {
         clearInterval(iv);
@@ -278,6 +293,7 @@
     }, 1000);
   }
 
+  /** @param {number} idx */
   function beginExercise(idx) {
     session.idx = idx;
     session.reps = 0;
@@ -297,6 +313,7 @@
     });
   }
 
+  /** @param {any} ex */
   function startDemoFallback(ex) {
     stopDemoFallback();
     session.demoTimer = setInterval(() => {
@@ -307,6 +324,7 @@
     if (session && session.demoTimer) { clearInterval(session.demoTimer); session.demoTimer = null; }
   }
 
+  /** @param {number} [formScore] */
   function handleRep(formScore) {
     if (!session || session.phase !== 'active') return;
     const ex = session.exercises[session.idx];
@@ -456,7 +474,7 @@
       <button class="btn btn-primary btn-block" id="sleepBtn" disabled>${BTB.icon('check', 16)}<span>Sleep &amp; Start Tomorrow</span></button>
     `;
     const belt = $('belt');
-    BTB.Foods.forEach(f => {
+    BTB.Foods.forEach((/** @type {any} */ f) => {
       const b = document.createElement('button');
       b.className = `food-btn ${f.healthy ? 'healthy' : 'unhealthy'}`;
       b.textContent = f.e;
@@ -574,7 +592,7 @@
       return;
     }
     list.innerHTML = '';
-    store.history.slice().reverse().slice(0, 20).forEach(h => {
+    store.history.slice().reverse().slice(0, 20).forEach((/** @type {any} */ h) => {
       const row = document.createElement('div');
       row.className = 'history-row';
       row.innerHTML = `
@@ -618,7 +636,7 @@
     const list = $('achievementsList');
     list.innerHTML = '';
     const unlocked = store.state.unlockedAchievements || [];
-    BTB.Achievements.forEach(a => {
+    BTB.Achievements.forEach((/** @type {any} */ a) => {
       const done = unlocked.includes(a.id);
       const row = document.createElement('div');
       row.className = 'history-row';
@@ -632,7 +650,7 @@
     });
   }
 
-  $('nameInput').addEventListener('input', e => {
+  $('nameInput').addEventListener('input', (/** @type {{target: any}} */ e) => {
     const v = e.target.value.trim() || 'Buddy';
     store.state.name = v;
     store.save();
@@ -652,15 +670,15 @@
     $('voiceToggle').checked = voice.enabled;
     $('voiceRateSlider').value = voice.rate;
 
-    $('voiceToggle').addEventListener('change', e => {
+    $('voiceToggle').addEventListener('change', (/** @type {{target: any}} */ e) => {
       voice.setEnabled(e.target.checked);
       if (e.target.checked) voice.speak('Voice coaching on.', { priority: 'high' });
     });
-    $('voiceRateSlider').addEventListener('input', e => { voice.setRate(parseFloat(e.target.value)); });
+    $('voiceRateSlider').addEventListener('input', (/** @type {{target: any}} */ e) => { voice.setRate(parseFloat(e.target.value)); });
 
-    $('musicVolSlider').addEventListener('input', e => { audio.unlock(); audio.setMusicVolume(parseFloat(e.target.value)); });
-    $('sfxVolSlider').addEventListener('input', e => { audio.unlock(); audio.setSfxVolume(parseFloat(e.target.value)); audio.play('click'); });
-    $('muteToggle').addEventListener('change', e => {
+    $('musicVolSlider').addEventListener('input', (/** @type {{target: any}} */ e) => { audio.unlock(); audio.setMusicVolume(parseFloat(e.target.value)); });
+    $('sfxVolSlider').addEventListener('input', (/** @type {{target: any}} */ e) => { audio.unlock(); audio.setSfxVolume(parseFloat(e.target.value)); audio.play('click'); });
+    $('muteToggle').addEventListener('change', (/** @type {{target: any}} */ e) => {
       audio.unlock();
       audio.setMuted(e.target.checked);
       syncMuteButton();
@@ -672,7 +690,7 @@
       syncMuteButton();
     });
 
-    $('goalWeightInput').addEventListener('change', e => {
+    $('goalWeightInput').addEventListener('change', (/** @type {{target: any}} */ e) => {
       let v = parseFloat(e.target.value);
       if (isNaN(v) || v < 90) v = 90;
       if (v > store.state.weight - 5) v = Math.max(90, store.state.weight - 5);
@@ -682,7 +700,7 @@
       refreshCharacterUI();
       toast('Goal weight updated');
     });
-    $('currentWeightInput').addEventListener('change', e => {
+    $('currentWeightInput').addEventListener('change', (/** @type {{target: any}} */ e) => {
       let v = parseFloat(e.target.value);
       if (isNaN(v) || v < 90) v = 90;
       store.state.weight = v;
