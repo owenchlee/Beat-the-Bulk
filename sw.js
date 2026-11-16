@@ -1,6 +1,6 @@
 /* ============================================================
    BEAT THE BULK — Service worker
-   Cache-first for the app shell (same-origin HTML/CSS/JS/manifest/
+   Network-first (cache fallback) for the app shell (same-origin HTML/CSS/JS/manifest/
    icons) so the app installs and reloads offline. MediaPipe's CDN
    scripts are explicitly network-only/pass-through — caching a
    stale pose-detection build could silently break rep tracking
@@ -34,7 +34,8 @@ const APP_SHELL = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(APP_SHELL))
+      // One file at a time so a single 404 doesn't abort the whole install.
+      .then(cache => Promise.all(APP_SHELL.map(a => cache.add(a).catch(() => {}))))
       .then(() => self.skipWaiting())
   );
 });
@@ -56,16 +57,14 @@ self.addEventListener('fetch', event => {
 
   if (event.request.method !== 'GET') return;
 
+  // Network-first so redeploys reach users; cache fallback keeps it offline-capable.
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-        }
-        return response;
-      });
-    })
+    fetch(event.request, { cache: 'no-cache' }).then(response => {
+      if (response.ok) {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+      }
+      return response;
+    }).catch(() => caches.match(event.request, { ignoreSearch: true }).then(c => c || Response.error()))
   );
 });
