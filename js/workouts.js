@@ -168,25 +168,41 @@
   function buildWorkout(goalKey, intensityKey, daySeed) {
     const goal = GOALS[goalKey] || GOALS.weight_loss;
     const intensity = INTENSITIES[intensityKey] || INTENSITIES.moderate;
-    let seed = (daySeed || 1) * 137 + 17;
-    function rnd() { seed = (seed * 1664525 + 1013904223) & 0x7fffffff; return seed; }
-    const pool = goal.pool.slice();
-    const chosen = [];
-    /** @type {Record<string, number>} */
-    const seen = {};
-    let guard = 0;
-    while (chosen.length < goal.count && guard < 200) {
-      guard++;
-      const idx = rnd() % pool.length;
-      const key = pool[idx];
-      const uses = seen[key] || 0;
-      if (uses < 2) { // allow a repeat exercise at most twice per workout for variety pools with <count entries
-        seen[key] = uses + 1;
-        const ex = EXERCISES[key];
-        const reps = Math.max(6, Math.round(BASE_REPS * intensity.repsMult * (key === 'high_knees' || key === 'side_reaches' ? 1.6 : 1)));
-        chosen.push(Object.assign({}, ex, { reps, state: {} }));
+    // Distinct pool, shuffled by a seeded mulberry32; a repeat is added only when the pool is smaller than count.
+    function order(day) {
+      let t = (Math.trunc(Number(day)) || 1) * 2654435761 + 17;
+      const rnd = function () {
+        t = (t + 0x6D2B79F5) | 0;
+        let r = Math.imul(t ^ (t >>> 15), 1 | t);
+        r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+        return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+      };
+      const keys = goal.pool.filter(function (k, i, a) { return a.indexOf(k) === i; });
+      for (let i = keys.length - 1; i > 0; i--) {
+        const j = Math.floor(rnd() * (i + 1));
+        const tmp = keys[i]; keys[i] = keys[j]; keys[j] = tmp;
       }
+      const out = keys.slice(0, goal.count);
+      for (let guard = 0; out.length < goal.count && guard < 200; guard++) {
+        const key = goal.pool[Math.floor(rnd() * goal.pool.length)]; // weighted by pool duplicates
+        const spots = [];
+        for (let p = 0; p <= out.length; p++) if (out[p - 1] !== key && out[p] !== key) spots.push(p);
+        if (spots.length && out.filter(function (k) { return k === key; }).length < 2) out.splice(spots[Math.floor(rnd() * spots.length)], 0, key);
+      }
+      return out;
     }
+    // rotate so consecutive days never share the exact same order (compares against yesterday's final order, a few days deep)
+    function final(day, depth) {
+      let k = order(day);
+      const other = depth > 0 ? final(day - 1, depth - 1).join() : order(day - 1).join();
+      for (let n = 0; n < k.length && k.join() === other; n++) k = k.slice(1).concat(k[0]);
+      return k;
+    }
+    const keys = final(Math.trunc(Number(daySeed)) || 1, 6);
+    const chosen = keys.map(function (key) {
+      const reps = Math.max(6, Math.round(BASE_REPS * intensity.repsMult * (key === 'high_knees' || key === 'side_reaches' ? 1.6 : 1)));
+      return Object.assign({}, EXERCISES[key], { reps, state: {} });
+    });
     return { goal, intensity, exercises: chosen };
   }
 
