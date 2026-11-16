@@ -74,6 +74,35 @@
   function freshState() { return {}; }
 
   /**
+   * Angle (degrees) of the ray from `a` to `b`, measured clockwise from
+   * straight-down (matches the character rig's rest pose: limbs hang
+   * straight down at 0deg, and CSS `rotate(deg)` is clockwise-positive in
+   * screen coordinates — same convention as `atan2(dx,dy)` here). Used to
+   * drive live limb mirroring on the character rig, not for rep detection.
+   * @param {Landmark[]} lm @param {number} aIdx @param {number} bIdx
+   * @returns {number|undefined} Degrees, or undefined if either point isn't confidently visible.
+   */
+  function limbAngleDeg(lm, aIdx, bIdx) {
+    if (!vis(lm, aIdx) || !vis(lm, bIdx)) return undefined;
+    const a = lm[aIdx], b = lm[bIdx];
+    return Math.atan2(b.x - a.x, b.y - a.y) * 180 / Math.PI;
+  }
+
+  /**
+   * Whole-arm (shoulder->wrist) and whole-leg (hip->knee) angles for every
+   * limb the character rig can move, keyed to match `Character.setLiveAngles`.
+   * @param {Landmark[]} lm
+   */
+  function computeLiveAngles(lm) {
+    return {
+      L: limbAngleDeg(lm, IDX.lShoulder, IDX.lWrist),
+      R: limbAngleDeg(lm, IDX.rShoulder, IDX.rWrist),
+      legL: limbAngleDeg(lm, IDX.lHip, IDX.lKnee),
+      legR: limbAngleDeg(lm, IDX.rHip, IDX.rKnee)
+    };
+  }
+
+  /**
    * Normalizes `value` into [0, 1] on the line from `atThreshold` (the value
    * that just barely crosses into "active", scoring 0) to `atTarget` (the
    * value for excellent form, scoring 1). Works whether the metric grows or
@@ -395,6 +424,11 @@
     drawLandmarks(ctx, lm, { color: '#f97316', lineWidth: 1, radius: 2.6 });
 
     if (this.opts.onConfidence) this.opts.onConfidence(requiredVisible);
+
+    // Live limb-mirroring feed: fires whenever a confident pose is present,
+    // independent of `enabled` (rep counting), so the character keeps
+    // mirroring the user through rest periods and countdowns too.
+    if (requiredVisible && this.opts.onFrame) this.opts.onFrame(computeLiveAngles(lm));
 
     if (!this.enabled || !requiredVisible) return;
 

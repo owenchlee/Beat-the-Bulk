@@ -8,6 +8,7 @@
     "typecheck": "tsc"
   },
   "devDependencies": {
+    "pngjs": "^7.0.0",
     "typescript": "^5.6.3"
   }
 }

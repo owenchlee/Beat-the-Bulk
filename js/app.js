@@ -48,6 +48,7 @@
     label('achievementsTitle', 'sparkle', 'Achievements');
     label('audioSettingsTitle', 'volume', 'Audio');
     label('voiceSettingsTitle', 'sparkle', 'Voice Coaching');
+    label('genderSettingsTitle', 'user', 'Character');
     label('goalSettingsTitle', 'target', 'Goal');
     label('dataSettingsTitle', 'scale', 'Your Data');
     label('resetBtn', 'x', 'Reset All Progress');
@@ -206,6 +207,20 @@
   // Setup screen (goal + intensity pickers)
   // ---------------------------------------------------------------
   const GOAL_ICONS = { weight_loss: 'flame', endurance: 'heart', toning: 'bolt', quick_cardio: 'clock' };
+  const GENDER_OPTIONS = [
+    { key: 'male', label: 'Boy', desc: 'Male character art' },
+    { key: 'female', label: 'Girl', desc: 'Female character art' }
+  ];
+
+  function renderGenderChoices() {
+    renderChoices($('genderChoices'), GENDER_OPTIONS, store.state.gender, null, key => {
+      store.state.gender = key;
+      store.save();
+      character.update({ gender: key });
+      renderGenderChoices();
+      toast('Character updated');
+    });
+  }
 
   /** @param {HTMLElement} container @param {any[]} entries @param {string} selectedKey @param {Record<string,string>|null} iconMap @param {(key:string)=>void} onPick */
   function renderChoices(container, entries, selectedKey, iconMap, onPick) {
@@ -249,7 +264,8 @@
     if (tracker) return tracker;
     tracker = new BTB.PoseTracker($('camVideo'), $('poseCanvas'), {
       onRep: handleRep,
-      onPoseLost: () => { $('camStatusText').textContent = 'STEP BACK INTO FRAME'; $('camStatus').style.color = '#fbbf24'; },
+      onFrame: angles => character.setLiveAngles(angles),
+      onPoseLost: () => { $('camStatusText').textContent = 'STEP BACK INTO FRAME'; $('camStatus').style.color = '#fbbf24'; character.clearLiveAngles(); },
       onPoseFound: () => { $('camStatusText').textContent = 'TRACKING'; $('camStatus').style.color = '#22c55e'; }
     });
     return tracker;
@@ -408,6 +424,7 @@
   function finishWorkoutSession() {
     session.phase = 'done';
     ensureTracker().setEnabled(false);
+    character.clearLiveAngles();
     stopDemoFallback();
     clearInterval(demoAnimTimer);
     audio.stopMusic();
@@ -683,6 +700,7 @@
   // Settings
   // ---------------------------------------------------------------
   function initSettings() {
+    renderGenderChoices();
     $('musicVolSlider').value = audio.musicVol;
     $('sfxVolSlider').value = audio.sfxVol;
     $('muteToggle').checked = audio.muted;
@@ -761,9 +779,10 @@
       label('resetBtn', 'x', 'Reset All Progress');
       $('resetBtn').style.borderColor = '';
       $('resetBtn').style.color = '';
-      character.update({ t: 0, pose: 'idle', mood: 'sad' });
+      character.update({ t: 0, pose: 'idle', mood: 'sad', gender: store.state.gender });
       refreshCharacterUI();
       renderSetup();
+      renderGenderChoices();
       toast('Progress reset');
     });
   }
@@ -780,7 +799,7 @@
   // ---------------------------------------------------------------
   function init() {
     initStaticLabels();
-    character = new BTB.Character($('charStage'));
+    character = new BTB.Character($('charStage'), { gender: store.state.gender });
     BTB.startBlinkLoop(character);
     initSettings();
     syncMuteButton();

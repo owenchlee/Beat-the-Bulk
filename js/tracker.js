@@ -25,6 +25,7 @@
  * @property {number} totalCaloriesBurned
  * @property {string} goal
  * @property {string} intensity
+ * @property {string} gender
  * @property {string[]} [unlockedAchievements] - Always present once _ensureCollections() has run.
  * @property {Object.<string, boolean>} [exercisesTried] - Always present once _ensureCollections() has run.
  */
@@ -46,7 +47,8 @@
     totalWorkouts: 0,
     totalCaloriesBurned: 0,
     goal: 'weight_loss',
-    intensity: 'moderate'
+    intensity: 'moderate',
+    gender: 'male'
   };
 
   function Store() {

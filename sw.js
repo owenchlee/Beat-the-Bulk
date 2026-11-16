@@ -7,7 +7,7 @@
    after an upstream update, so we never freeze those into offline.
    Bump CACHE_NAME on any app-shell file change to invalidate.
    ============================================================ */
-const CACHE_NAME = 'btb-cache-v1';
+const CACHE_NAME = 'btb-cache-v9';
 
 const APP_SHELL = [
   './',
@@ -28,7 +28,19 @@ const APP_SHELL = [
   'js/tracker.js',
   'js/achievements.js',
   'js/share-card.js',
-  'js/app.js'
+  'js/app.js',
+  'img/characters/male-1.png',
+  'img/characters/male-2.png',
+  'img/characters/male-3.png',
+  'img/characters/male-4.png',
+  'img/characters/male-5.png',
+  'img/characters/male-6.png',
+  'img/characters/female-1.png',
+  'img/characters/female-2.png',
+  'img/characters/female-3.png',
+  'img/characters/female-4.png',
+  'img/characters/female-5.png',
+  'img/characters/female-6.png'
 ];
 
 self.addEventListener('install', event => {
