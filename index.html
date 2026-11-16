@@ -23,7 +23,7 @@
 
   <header class="topbar">
     <div class="brand">
-      <div class="brand-mark">BEAT THE<span class="hit"> BULK</span></div>
+      <h1 class="brand-mark">BEAT THE<span class="hit"> BULK</span></h1>
       <div class="brand-tag">Train for real. Watch them grow.</div>
     </div>
     <div class="topbar-right">
@@ -33,7 +33,7 @@
     </div>
   </header>
 
-  <div class="grid">
+  <main class="grid">
     <!-- ===== Character panel (persistent) ===== -->
     <aside class="char-panel" id="charPanel">
       <div class="char-stage-name" id="charStageName">Getting Started</div>
@@ -90,7 +90,7 @@
             <div class="demo-area">
               <svg id="demoSvg" viewBox="0 0 90 110" xmlns="http://www.w3.org/2000/svg"></svg>
               <div class="demo-info">
-                <h3 id="exName">—</h3>
+                <h2 id="exName">—</h2>
                 <p id="exTip">Loading exercise…</p>
                 <div class="demo-tags" id="exTags"></div>
               </div>
@@ -169,15 +169,15 @@
           <div class="card-title" id="audioSettingsTitle"></div>
           <div class="settings-row">
             <div><div class="settings-label">Music</div><div class="settings-sub">Background score while you train</div></div>
-            <input type="range" min="0" max="1" step="0.05" class="slider" id="musicVolSlider">
+            <input type="range" min="0" max="1" step="0.05" class="slider" id="musicVolSlider" aria-label="Music volume">
           </div>
           <div class="settings-row">
             <div><div class="settings-label">Sound effects</div><div class="settings-sub">Countdowns, reps, fanfares</div></div>
-            <input type="range" min="0" max="1" step="0.05" class="slider" id="sfxVolSlider">
+            <input type="range" min="0" max="1" step="0.05" class="slider" id="sfxVolSlider" aria-label="Sound effects volume">
           </div>
           <div class="settings-row">
             <div><div class="settings-label">Mute all</div><div class="settings-sub">Silence everything</div></div>
-            <label class="switch"><input type="checkbox" id="muteToggle"><span class="switch-track"></span></label>
+            <label class="switch"><input type="checkbox" id="muteToggle" aria-label="Mute all"><span class="switch-track"></span></label>
           </div>
         </div>
 
@@ -185,11 +185,11 @@
           <div class="card-title" id="voiceSettingsTitle"></div>
           <div class="settings-row">
             <div><div class="settings-label">Voice coaching</div><div class="settings-sub">Spoken rep counts, countdowns, encouragement</div></div>
-            <label class="switch"><input type="checkbox" id="voiceToggle"><span class="switch-track"></span></label>
+            <label class="switch"><input type="checkbox" id="voiceToggle" aria-label="Voice coaching"><span class="switch-track"></span></label>
           </div>
           <div class="settings-row">
             <div><div class="settings-label">Speaking rate</div><div class="settings-sub">How fast the coach talks</div></div>
-            <input type="range" min="0.6" max="1.5" step="0.1" class="slider" id="voiceRateSlider">
+            <input type="range" min="0.6" max="1.5" step="0.1" class="slider" id="voiceRateSlider" aria-label="Speaking rate">
           </div>
         </div>
 
@@ -215,12 +215,12 @@
       </section>
 
     </div>
-  </div>
+  </main>
 </div>
 
 <!-- End-of-workout / meal modal -->
 <div class="modal-overlay hidden" id="modalOverlay">
-  <div class="modal" id="modalBox"></div>
+  <div class="modal" id="modalBox" role="dialog" aria-modal="true" aria-label="Workout complete"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
