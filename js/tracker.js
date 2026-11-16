@@ -55,6 +55,7 @@
     this._ensureCollections();
     /** @type {DayRecord[]} */
     this.history = this._loadJSON('btb_history', []);
+    this._base = { state: JSON.parse(JSON.stringify(this.state)), history: this.history.slice() };
   }
   /**
    * @param {string} key
@@ -80,14 +81,49 @@
   Store.prototype.markExerciseTried = function (key) {
     (this.state.exercisesTried || (this.state.exercisesTried = {}))[key] = true;
   };
+  const COUNTERS = ['day', 'totalWorkouts', 'totalReps', 'totalCaloriesBurned'];
+  // Re-read what is on disk (another tab may have saved) and treat it as our new baseline.
+  Store.prototype.refresh = function () {
+    this.state = Object.assign({}, DEFAULTS, this._loadJSON('btb_state', {}));
+    this._ensureCollections();
+    this.history = this._loadJSON('btb_history', []);
+    this._base = { state: JSON.parse(JSON.stringify(this.state)), history: this.history.slice() };
+  };
+  // Merge our edits (diff vs the last loaded/saved baseline) onto the latest stored data,
+  // so a stale tab does not clobber another tab's save.
+  Store.prototype._merge = function () {
+    const base = this._base;
+    if (!base) return;
+    const latest = Object.assign({}, DEFAULTS, this._loadJSON('btb_state', {}));
+    const latestHist = this._loadJSON('btb_history', []);
+    const merged = latest;
+    for (const k of Object.keys(this.state)) {
+      const mine = JSON.stringify(this.state[k]);
+      if (mine === JSON.stringify(base.state[k])) continue;
+      const bk = base.state[k];
+      merged[k] = COUNTERS.includes(k) && typeof bk === 'number' && typeof latest[k] === 'number'
+        ? latest[k] + (this.state[k] - bk) : this.state[k];
+    }
+    const bl = base.history.length;
+    const extends_ = this.history.length >= bl && JSON.stringify(this.history.slice(0, bl)) === JSON.stringify(base.history);
+    this.state = merged;
+    this._ensureCollections();
+    if (extends_) {
+      this.history = latestHist.concat(this.history.slice(bl)).slice(-120);
+    }
+  };
   Store.prototype.save = function () {
+    if (!this._resetting) this._merge();
+    this._resetting = false;
     localStorage.setItem('btb_state', JSON.stringify(this.state));
     localStorage.setItem('btb_history', JSON.stringify(this.history));
+    this._base = { state: JSON.parse(JSON.stringify(this.state)), history: this.history.slice() };
   };
   Store.prototype.reset = function () {
     this.state = Object.assign({}, DEFAULTS);
     this._ensureCollections();
     this.history = [];
+    this._resetting = true;
     this.save();
   };
   /** @param {DayRecord} record */
