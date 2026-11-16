@@ -154,8 +154,13 @@
       const kneeR = angleAt(lm[24], lm[26], lm[28]);
       if (kneeL === null || kneeR === null) return false;
       const avg = (kneeL + kneeR) / 2;
-      const active = avg < 130; // bent knees
-      return cycleScored(state, active, avg, 130, 90);
+      // Front view: knee angle stays ~180, but the thigh's share of the hip->ankle vertical span shrinks
+      // (standing ~0.5, deep squat ~0.39); a ratio needs no torso scale.
+      const span = (lm[27].y - lm[23].y) + (lm[28].y - lm[24].y);
+      const drop = span > 1e-5 ? ((lm[25].y - lm[23].y) + (lm[26].y - lm[24].y)) / span : 1;
+      const active = avg < 130 || drop < 0.45;
+      const t = Math.max(normT(avg, 130, 90), normT(drop, 0.45, 0.35));
+      return cycleScored(state, active, t, 0, 1);
     },
 
     side_reaches(lm, state, scale) {
@@ -188,7 +193,11 @@
       const lift = (/** @type {string} */ side) => {
         const hip = lm[side === 'L' ? 23 : 24], knee = lm[side === 'L' ? 25 : 26];
         const downAngle = Math.atan2(knee.x - hip.x, knee.y - hip.y) * 180 / Math.PI;
-        return Math.abs(downAngle);
+        // Front view: a knee raised toward the camera keeps downAngle ~0 but its drop below the hip shrinks
+        // (standing ~0.8 torso, raised ~0.05); map that drop onto the same 48-75 degree scale.
+        const drop = (knee.y - hip.y) / scale;
+        const dropLift = drop < 0.45 ? 48 + normT(drop, 0.45, 0.10) * 27 : 0;
+        return Math.max(Math.abs(downAngle), dropLift);
       };
       const liftL = lift('L'), liftR = lift('R');
       const active = Math.max(liftL, liftR) > 48;
@@ -214,23 +223,11 @@
 
     arm_circles(lm, state, scale) {
       if (!visAll(lm, [11, 12, 15, 16])) return false;
-      const sh = midPt(lm[11], lm[12]), wr = midPt(lm[15], lm[16]);
-      const extended = dist(sh, wr) / scale > 0.30;
-      if (!extended) { state.lastAngle = null; return false; }
-      const ang = Math.atan2(wr.y - sh.y, wr.x - sh.x) * 180 / Math.PI;
-      if (state.lastAngle === null || state.lastAngle === undefined) { state.lastAngle = ang; state.rotAcc = 0; return false; }
-      let delta = normAngleDelta(ang - state.lastAngle);
-      state.lastAngle = ang;
-      if (Math.abs(delta) > 45) return false; // reject spikes
-      state.rotAcc = (state.rotAcc || 0) + delta;
-      if (Math.abs(state.rotAcc) >= 330) {
-        // Overshoot past 330 toward a fuller rotation reads as a rounder,
-        // more complete circle rather than a rep that just barely counted.
-        const formScore = scoreFromT(normT(Math.abs(state.rotAcc), 330, 370));
-        state.rotAcc = 0;
-        return { done: true, formScore };
-      }
-      return false;
+      // View-independent: arms held out to the sides, wrists bob above the shoulder line once per circle.
+      const reach = Math.min(Math.abs(lm[15].x - lm[11].x), Math.abs(lm[16].x - lm[12].x)) / scale;
+      const rise = ((lm[11].y - lm[15].y) + (lm[12].y - lm[16].y)) / 2 / scale;
+      const active = reach > 0.45 && rise > 0.10;
+      return cycleScored(state, active, rise, 0.10, 0.25);
     },
 
     push_ups(lm, state, scale) {
@@ -283,8 +280,14 @@
       const hipAngleR = angleAt(lm[12], lm[24], lm[26]);
       if (hipAngleL === null || hipAngleR === null) return false;
       const avg = (hipAngleL + hipAngleR) / 2;
-      const active = avg < 100; // torso folded forward at the hips
-      return cycleScored(state, active, avg, 100, 70);
+      // Front view: the hip angle stays ~180, but the torso's vertical extent collapses relative to the
+      // thigh's (standing ~1.25, folded ~0.1); a ratio of vertical spans needs no torso scale.
+      const thigh = (lm[25].y - lm[23].y) + (lm[26].y - lm[24].y);
+      const trunk = (lm[23].y - lm[11].y) + (lm[24].y - lm[12].y);
+      const ratio = thigh > 1e-5 ? trunk / thigh : 9;
+      const active = avg < 100 || ratio < 0.6; // torso folded forward at the hips
+      const t = Math.max(normT(avg, 100, 70), normT(ratio, 0.6, 0.3));
+      return cycleScored(state, active, t, 0, 1);
     }
   };
 
