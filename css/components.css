@@ -127,7 +127,8 @@
   align-items: start;
 }
 @media (max-width: 760px) {
-  .grid { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .grid > * { min-width: 0; }
 }
 
 /* ---------- Card ---------- */
@@ -158,6 +159,9 @@
   text-align: center;
   position: sticky;
   top: var(--sp-4);
+}
+@media (max-width: 760px) {
+  .char-panel { position: static; }
 }
 
 .char-stage-name {
@@ -414,3 +418,15 @@
   box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 8px;
 }
 .toast svg { width: 16px; height: 16px; color: var(--color-accent); }
+
+/* Phone touch targets: 44px hit areas, visuals unchanged */
+@media (max-width: 760px) {
+  .icon-btn { width: 44px; height: 44px; flex-shrink: 0; }
+  #shareBtn { min-height: 44px; }
+  .slider { height: 44px; background: transparent; }
+  .slider::-webkit-slider-runnable-track { height: 6px; border-radius: var(--r-pill); background: var(--color-surface-2); }
+  .slider::-moz-range-track { height: 6px; border-radius: var(--r-pill); background: var(--color-surface-2); }
+  .slider::-webkit-slider-thumb { margin-top: -6px; }
+  .switch { height: 44px; }
+  .switch-track { top: 9px; bottom: 9px; }
+}
