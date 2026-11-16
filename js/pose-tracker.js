@@ -315,7 +315,24 @@
     this.lastRepMs = 0;
     this.minRepGapMs = 260;
     this.poseFound = false;
-    this._initPose();
+  }
+
+  // MediaPipe is only needed once Begin is pressed, so load it on demand; a failed load rejects start().
+  let mpLoad = null;
+  function loadMediaPipe() {
+    if (mpLoad) return mpLoad;
+    const base = 'https://cdn.jsdelivr.net/npm/@mediapipe/';
+    mpLoad = Promise.all(['camera_utils/camera_utils.js', 'drawing_utils/drawing_utils.js', 'pose/pose.js'].map(p =>
+      new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = base + p;
+        s.crossOrigin = 'anonymous';
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('MediaPipe failed to load: ' + p));
+        document.head.appendChild(s);
+      })
+    )).catch(e => { mpLoad = null; throw e; });
+    return mpLoad;
   }
 
   Tracker.prototype._initPose = function () {
@@ -396,7 +413,9 @@
 
   Tracker.prototype.start = function () {
     const self = this;
-    return navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } })
+    return loadMediaPipe()
+      .then(() => { if (!this.pose) this._initPose(); })
+      .then(() => navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } }))
       .then(stream => {
         this.video.srcObject = stream;
         return this.video.play();
